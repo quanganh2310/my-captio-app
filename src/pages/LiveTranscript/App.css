@@ -1,0 +1,325 @@
+@import '~antd/dist/antd.css';
+
+:root{
+  --caption-line-height: 1.5em;
+  --caption-height: 3.0em;
+}
+
+.App {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.page-container {
+  width: 80%;
+}
+
+.player-theater-card .ant-card-body {
+  padding: 0 !important;
+}
+
+.capture-btn {
+  height: 40px;
+  color: #1890ff;
+  border-color: #1890ff;
+  border-radius: 5px;
+  width: 170px;
+  font-size: 17px;
+  border-width: medium;
+  font-weight: normal;
+}
+
+.capture-btn:hover {
+  background-color: #1890ff;
+  color: white;
+}
+
+.player-theater-container {
+  position: relative;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.video-container {
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+}
+
+.no-stream {
+  border-style: dashed;
+  border-color: #1890ff;
+  background-color: #1890ff;
+}
+
+.no-stream-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.stream-container-text {
+  color: white;
+  font-size: larger;
+  margin-top: 1em;
+}
+
+.no-stream-container-icon {
+  font-size: 10em;
+  color: white;
+}
+
+.video-stream {
+  width: 100%;
+  height: 100%;
+}
+
+.caption-window-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+}
+
+.caption-window {
+  text-align: center;
+  left: 25%;
+  max-width: 50%;
+  /* width: 452px; */
+  /* height: 40px; */
+  bottom: 15%;
+  position: absolute;
+  line-height: normal;
+  z-index: 39;
+  touch-action: none;
+  user-select: none;
+  padding: 0.2em;
+}
+
+.caption-window span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+.caption-window:hover {
+  cursor: pointer;
+}
+
+.caption-window:active {
+  outline-style: solid;
+  outline-width: thin;
+}
+
+.caption-text {
+  overflow-wrap: normal;
+  display: block;
+}
+
+.caption-visual-line {
+  display: block;
+}
+
+.caption-segment {
+  display: inline-block;
+  white-space: pre-wrap;
+  background: rgba(8, 8, 8, 0.75);
+  font-size: 1.5em;
+  color: rgb(255, 255, 255);
+  fill: rgba(255, 255, 255, 0.5);
+  font-family: "YouTube Noto", Roboto, "Arial Unicode Ms", Arial, Helvetica, Verdana, "PT Sans Caption", sans-serif;
+}
+
+.video-controls-bottom {
+  visibility: hidden;
+}
+
+.controls-container {
+  position: absolute;
+  width: 100%;
+  height: 10%;
+  z-index: 60;
+  bottom: 0;
+  right: 0;
+  text-align: left;
+  background: rgba(26, 26, 26, 0.2);
+  /* opacity: 0; */
+  /* transition: visibility 1s; */
+}
+
+.transcript-switch-container {
+  display: flex;
+  align-items: center;
+}
+
+.ant-switch-handle {
+  transition: visibility 0s !important;
+}
+
+.caption-menu-container {
+  width: 25rem;
+  background: rgba(26, 26, 26, 0.85);
+  color: white;
+  font-size: 1em;
+  border-radius: 0.15em;
+  padding: 1em;
+  font-family: "YouTube Noto",Roboto,Arial,Helvetica,sans-serif;
+  position: absolute;
+  right: 2%;
+  bottom: 150%;
+  z-index: 41;
+}
+
+.model-selector {
+  width: 90%;
+}
+
+.ant-switch {
+  background-color: darkgray;
+}
+
+.ant-switch-checked {
+  background-color: #1890ff;
+}
+
+.caption-menu-item{
+  height: 100%;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.font-color-radio-button {
+  border-radius: 50%;
+  margin-right: 1em;
+  height: 24px;
+  width: 24px;
+}
+
+.caption-menu-button {
+  border: none;
+  height: 100% !important;
+  color: white;
+  background: none !important;
+  margin: 0 0.3em;
+  transition: visibility 0s;
+}
+
+.caption-menu-button:hover {
+  transform: scale(1.1) !important;
+  color: white !important;
+}
+
+.video-controls-icon {
+  font-size: 1.3em !important;
+}
+
+.caption-menu-button:focus {
+  color: white !important;
+}
+
+.ant-radio-button-wrapper-checked {
+  background-color: gray !important;
+  border-width: 0.3em !important;
+}
+
+.ant-radio-button-wrapper:hover {
+  transform: scale(1.2) !important;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+@media only screen and (max-width: 1400px) {
+
+  .caption-menu-container {
+    width: 20rem;
+    font-size: 0.8em;
+    /* border-radius: 0.15em; */
+    /* padding: 1em; */
+  }
+
+  .font-slider {
+    width: 80%;
+    height: 0.2em;
+  }
+
+  .model-selector {
+    font-size: 0.9em;
+  }
+
+  .ant-select-selector {
+    height: 24px !important;
+  }
+
+  .font-color-radio-button {
+    border-radius: 50%;
+    /* margin-right: 1em; */
+    height: 15px !important;
+    width: 15px !important;
+  }
+
+  .ant-radio-button-wrapper-checked {
+    border-width: 0 !important;
+  }
+
+}
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1400px) {
+  .controls-container {
+    height: 10%;
+  }
+}

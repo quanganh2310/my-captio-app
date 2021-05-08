@@ -1,0 +1,23 @@
+
+.ant-select-selector {
+  background: none !important;
+  color: white;
+}
+
+.ant-select-arrow {
+  color: white;
+}
+
+.model-option {
+  background: rgba(102, 102, 102, 0.85) !important;
+  color: white !important;
+}
+
+.model-option:hover {
+  background: rgba(140, 140, 140, 0.85) !important;
+  color: white !important;
+}
+
+.ant-radio-button-wrapper:not(:first-child)::before {
+  display: none;
+}
