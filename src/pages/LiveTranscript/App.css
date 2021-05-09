@@ -54,6 +54,10 @@
   padding: 0 !important;
 }
 
+.player-theater-card {
+  border-color: #1890ff;
+}
+
 .capture-btn {
   height: 40px;
   color: #1890ff;

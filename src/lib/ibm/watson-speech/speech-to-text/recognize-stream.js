@@ -34,7 +34,7 @@ var qs = require('../util/querystring.js');
  * Note that the WebSocket connection is not established until the first chunk of data is recieved. This allows for auto-detection of content type (for wav/flac/opus audio).
  *
  * @param {Options} options
- * @param {string} [options.url] - Base url for service (default='wss://stream.watsonplatform.net/speech-to-text/api')
+ * @param {string} [options.url] - Base url for service (default='wss://api.us-south.speech-to-text.watson.cloud.ibm.com')
  * @param {OutgoingHttpHeaders} [options.headers] - Only works in Node.js, not in browsers. Allows for custom headers to be set, including an Authorization header (preventing the need for auth tokens)
  * @param {boolean} [options.readableObjectMode] - Emit `result` objects instead of string Buffers for the `data` events. Does not affect input (which must be binary)
  * @param {boolean} [options.objectMode] - Alias for readableObjectMode
@@ -63,6 +63,10 @@ var qs = require('../util/querystring.js');
  * @param {boolean} [options.processingMetrics] - If true, requests processing metrics about the service's transcription of the input audio (default=false)
  * @param {number} [options.processingMetricsInterval] - Specifies the interval in seconds at which the service is to return processing metrics
  * @param {boolean} [options.audioMetrics] - If true, requests detailed information about the signal characteristics of the input audio (detailed=false)
+ * @param {number} [options.endOfPhraseSilenceTime] -  If true, specifies the duration of the pause interval at which the service splits a transcript into multiple final results. Specify a value for the pause interval in the range of 0.0 to 120.0 (default=0.8)
+ * @param {boolean} [options.splitTranscriptAtPhraseEnd] - If true, directs the service to split the transcript into multiple final results based on semantic features of the input, for example, at the conclusion of meaningful phrases such as sentences (default=false)
+ * @param {number} [options.speechDetectorSensitivity] - The sensitivity of speech activity detection that the service is to perform. Specify a value between 0.0 and 1.0 (default=0.5)
+ * @param {number} [options.backgroundAudioSuppression] - The level to which the service is to suppress background audio based on its volume to prevent it from being transcribed as speech. Specify a value between 0.0 and 1.0 (default=0.0)
  *
  * @constructor
  */
@@ -143,14 +147,14 @@ RecognizeStream.prototype.initialize = function() {
 
   // process query params
   var queryParamsAllowed = [
-    'model',
     'access_token',
-    // 'watson-token',
+    'watson-token',
+    'model',
     'language_customization_id',
     'acoustic_customization_id',
     'base_model_version',
     'x-watson-learning-opt-out',
-    'x-watson-metadata',
+    'x-watson-metadata'
   ];
   var queryParams = processUserParameters(options, queryParamsAllowed);
   if (!queryParams.language_customization_id && !queryParams.model) {
@@ -158,8 +162,7 @@ RecognizeStream.prototype.initialize = function() {
   }
   var queryString = qs.stringify(queryParams);
 
-  // var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?timestamps=true&smart_formatting=true&word_alternatives_threshold=0.10' + '&model=' + queryParams.model + '&access_token=' + queryParams.access_token;
-  var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?smart_formatting=true&word_alternatives_threshold=0.10' + queryString;
+  var url = (options.url || 'wss://api.us-south.speech-to-text.watson.cloud.ibm.com').replace(/^http/, 'ws') + '/v1/recognize?' + queryString;
 
   // process opening payload params
   var openingMessageParamsAllowed = [
@@ -180,11 +183,14 @@ RecognizeStream.prototype.initialize = function() {
     'smart_formatting',
     'speaker_labels',
     'grammar_name',
-    'redaction'
+    'redaction',
+    'end_of_phrase_silence_time',
+    'split_transcript_at_phrase_end',
+    'speech_detector_sensitivity',
+    'background_audio_suppression'
   ];
   var openingMessage = processUserParameters(options, openingMessageParamsAllowed);
   openingMessage.action = 'start';
-  // openingMessage.interim_results = 'false';
 
   var self = this;
 

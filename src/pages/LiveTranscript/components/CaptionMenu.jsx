@@ -29,9 +29,11 @@ export class CaptionMenu extends Component {
   }
 
   componentDidMount() {
-    this.setState({
-      oldBackground: document.querySelector(".caption-segment").style.background
-    });
+    if (document.querySelector(".caption-segment")) {
+      this.setState({
+        oldBackground: document.querySelector(".caption-segment").style.background
+      });
+    }
   }
 
   handleClickMenu = () => {
