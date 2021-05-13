@@ -49,7 +49,7 @@ const defaultFooterDom = (
       {
         key: 'Github Source',
         title: <GithubOutlined />,
-        href: 'https://github.com/ant-design/ant-design-pro',
+        href: 'https://github.com/quanganh2310/my-captio-app',
         blankTarget: true,
       },
       {

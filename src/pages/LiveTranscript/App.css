@@ -46,8 +46,30 @@
   }
 }
 
+.drop-info-container {
+  position: absolute;
+  display: none;
+  /* This div also gets our container classnames in order to be the correct width.
+  But, it isn't exactly correct until we fiddle with the padding */
+  padding-right: 1rem;
+}
+
+.dropzone {
+  display: none;
+}
+
+.dropzone.dropzone-active .drop-info-container,
+.dropzone.dropzone-reject .drop-info-container {
+    display: block;
+}
+
 .page-container {
-  width: 80%;
+  width: 90%;
+}
+
+.live-transcript-container {
+  display: flex;
+  justify-content: space-between;
 }
 
 .player-theater-card .ant-card-body {
@@ -56,6 +78,26 @@
 
 .player-theater-card {
   border-color: #1890ff;
+  width: 100%;
+}
+
+.player-theater-card-timestamp {
+  width: 65%;
+}
+
+.transcript-text-card {
+  width: 45%;
+  margin-left: 1%;
+}
+
+.transcript-text-card .ant-card-head {
+  background-color: #1890ff;
+  color: white;
+}
+
+.transcript-text-card .ant-card-body {
+  overflow-y: scroll;
+  height: 300px;
 }
 
 .capture-btn {

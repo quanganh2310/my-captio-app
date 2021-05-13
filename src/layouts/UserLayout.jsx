@@ -1,6 +1,7 @@
 import { DefaultFooter, getMenuData, getPageTitle } from '@ant-design/pro-layout';
 import { Helmet, HelmetProvider } from 'react-helmet-async';
 import { Link, SelectLang, useIntl, connect, FormattedMessage } from 'umi';
+import { GithubOutlined } from '@ant-design/icons';
 import React from 'react';
 import logo from '../assets/logo.svg';
 import styles from './UserLayout.less';
@@ -26,6 +27,33 @@ const UserLayout = (props) => {
     breadcrumb,
     ...props,
   });
+
+  const defaultFooterDom = (
+    <DefaultFooter
+      copyright={`${new Date().getFullYear()} Hanoi University of Science and Technology HEDSPI K61`}
+      links={[
+        {
+          key: 'Ant Design Pro',
+          title: 'Ant Design Pro',
+          href: 'https://pro.ant.design',
+          blankTarget: true,
+        },
+        {
+          key: 'Github Source',
+          title: <GithubOutlined />,
+          href: 'https://github.com/quanganh2310/my-captio-app',
+          blankTarget: true,
+        },
+        {
+          key: 'IBM Watson Speech',
+          title: 'IBM Watson Speech',
+          href: 'https://www.ibm.com/cloud/watson-speech-to-text',
+          blankTarget: true,
+        },
+      ]}
+    />
+  );
+
   return (
     <HelmetProvider>
       <Helmet>
@@ -42,19 +70,20 @@ const UserLayout = (props) => {
             <div className={styles.header}>
               <Link to="/">
                 <img alt="logo" className={styles.logo} src={logo} />
-                <span className={styles.title}>Ant Design</span>
+                <span className={styles.title}>Captio</span>
               </Link>
             </div>
             <div className={styles.desc}>
-              <FormattedMessage
+               Make any streaming video and meeting become smooth
+              {/* <FormattedMessage
                 id="pages.layouts.userLayout.title"
                 defaultMessage="Ant Design 是西湖区最具影响力的 Web 设计规范"
-              />
+              >Captio</FormattedMessage> */}
             </div>
           </div>
           {children}
         </div>
-        <DefaultFooter />
+        {defaultFooterDom}
       </div>
     </HelmetProvider>
   );

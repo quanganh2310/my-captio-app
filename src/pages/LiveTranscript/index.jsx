@@ -1,15 +1,16 @@
 /* eslint-disable no-param-reassign */
 import React, { Component } from 'react';
+import Dropzone from 'react-dropzone';
 import { Card, Row, Switch, Input } from 'antd';
 import { Space, Button, Divider } from 'antd';
-import { AudioOutlined, ProfileFilled, AudioMutedOutlined } from '@ant-design/icons';
-import  {DesktopOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import { AudioOutlined, ProfileFilled, AudioMutedOutlined, UploadOutlined } from '@ant-design/icons';
+import { DesktopOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons';
 // eslint-disable-next-line import/no-webpack-loader-syntax
 // import SampleVideo from '-!file-loader!./sintel-short.mp4';
 
 import './App.css';
 
-// import ModelDropdown from './components/ModelDropdown';
+import ModelDropdown from './components/ModelDropdown';
 import CaptionMenu from './components/CaptionMenu';
 import FullscreenBtn from './components/FullscreenBtn';
 
@@ -17,7 +18,7 @@ import recognizeMic from '../../lib/speech-to-text/recognize-microphone';
 import recognizeMicrophone from '../../lib/ibm/watson-speech/speech-to-text/recognize-microphone';
 import recognizeFile from '../../lib/ibm/watson-speech/speech-to-text/recognize-file';
 import Transcript from './components/transcript.jsx';
-import TimingView from './components/timing.jsx';
+// import TimingView from './components/timing.jsx';
 
 const { TextArea } = Input;
 
@@ -112,6 +113,7 @@ class LiveTranscript extends Component {
       stereoMix: '',
       showMenu: false,
       showCaption: true,
+      showTextBox: false
     }
     this.onChangeLanguage = this.onChangeLanguage.bind(this);
     this.onListenClick = this.onListenClick.bind(this);
@@ -183,7 +185,7 @@ class LiveTranscript extends Component {
       }
       return res.json();
     }) // todo: throw here if non-200 status
-      .then(creds => {this.setState({ creds });}).catch(this.handleError);
+      .then(creds => { this.setState({ creds }); }).catch(this.handleError);
   }
 
   reset() {
@@ -220,7 +222,7 @@ class LiveTranscript extends Component {
   getRecognizeOptions(extra) {
     // const keywords = this.getKeywordsArrUnique();
     return {// formats phone numbers, currency, etc. (server-side)
-      mediaStream: this.state.stream,
+      // mediaStream: this.state.stream,
       access_token: this.state.creds.accessToken,
       token: this.state.creds.accessToken,
       smart_formatting: true,
@@ -239,7 +241,8 @@ class LiveTranscript extends Component {
       resultsBySpeaker: this.state.speakerLabels,
       // allow interim results through before the speaker has been determined
       speakerlessInterim: this.state.speakerLabels,
-      url: this.state.creds.serviceUrl, ...extra};
+      url: this.state.creds.serviceUrl, ...extra
+    };
   }
 
   handleMicClick() {
@@ -261,10 +264,11 @@ class LiveTranscript extends Component {
     //  * a few other things for backwards compatibility and sane defaults
     // In addition to this, it passes other service-level options along to the RecognizeStream that
     // manages the actual WebSocket connection.
-    this.handleStream(recognizeMicrophone(this.getRecognizeOptions()));
+    this.handleStream(recognizeMicrophone(this.getRecognizeOptions({mediaStream: this.state.stream})));
   }
 
   handleUploadClick() {
+    console.log("file")
     if (this.state.audioSource === 'upload') {
       this.stopTranscription();
     } else {
@@ -279,6 +283,7 @@ class LiveTranscript extends Component {
     }
     this.reset();
     this.setState({ audioSource: 'upload' });
+    console.log(file);
     this.playFile(file);
   }
 
@@ -301,6 +306,34 @@ class LiveTranscript extends Component {
     //  * a few other things for backwards compatibility and sane defaults
     // In addition to this, it passes other service-level options along to the RecognizeStream
     // that manages the actual WebSocket connection.
+    // fetch('http://localhost:8002/api/v1/credentials')
+    //   .then((response) => {
+    //     return response.text();
+    //   }).then((token) => {
+    //     const data = JSON.parse(token)
+    //     console.log('token is', data.accessToken)
+    //     const stream = recognizeFile({
+    //       file,
+    //       play: true,
+    //       realtime: true,
+    //       model: this.state.model,
+    //       url: data.serviceUrl,
+    //       token: data.accessToken,
+    //       accessToken: data.accessToken,
+    //       speakerLabels: false,
+    //       objectMode: true, // send objects instead of text
+    //       // extractResults: true, // convert {results: [{alternatives:[...]}], result_index: 0} to {alternatives: [...], index: 0}
+    //       format: true, // optional - performs basic formatting on the results such as capitals an periods,
+    //       interim_results: true,
+    //       smart_formatting: true,
+    //       word_alternatives_threshold: 0.01,
+    //       resultsBySpeaker: false,
+    //       timestamps: true,
+    //     });
+    //     this.handleStream(stream);
+    //   }).catch((error) => {
+    //     console.log(error);
+    //   });
     this.handleStream(recognizeFile(this.getRecognizeOptions({
       file,
       play: true, // play the audio out loud
@@ -352,16 +385,17 @@ class LiveTranscript extends Component {
   }
 
   handleFormattedMessage(msg) {
+    // console.log(msg);
     const { formattedMessages } = this.state;
     const { transcript } = msg.results[0].alternatives[0];
     this.setState({
       text: transcript,
     });
     const captionSegment = document.querySelector('.caption-segment');
-          if (captionSegment) {
-            document.querySelector('.caption-segment').scrollTop = 9999999;
-            document.querySelector('.caption-segment').innerHTML = transcript;
-          }
+    if (captionSegment) {
+      document.querySelector('.caption-segment').scrollTop = 9999999;
+      document.querySelector('.caption-segment').innerHTML = transcript;
+    }
     this.setState({ formattedMessages: formattedMessages.concat(msg) });
   }
 
@@ -465,13 +499,25 @@ class LiveTranscript extends Component {
     });
   }
 
+  onShowTextBox = (checked) => {
+    this.setState({ showTextBox: checked });
+    if (checked) {
+      const transcriptTextBox = document.querySelector('.transcript-text-card');
+      const videoContainer = document.querySelector('.video-container');
+      if (transcriptTextBox && videoContainer) {
+        transcriptTextBox.clientHeight = videoContainer.clientHeight;
+      }
+      console.log(videoContainer.clientHeight)
+    }
+  }
+
   onRecordAudio = () => {
     fetch('http://localhost:8002/api/v1/credentials')
       .then((response) => {
         return response.text();
       }).then((token) => {
         const data = JSON.parse(token)
-        console.log('token is', data.accessToken)
+        // console.log('token is', data.accessToken)
         const stream = recognizeMic({
           mediaStream: this.state.stream,
           model: this.state.model,
@@ -488,26 +534,27 @@ class LiveTranscript extends Component {
           resultsBySpeaker: false,
           timestamps: true,
         });
-        // this.handleStream(stream);
-        stream.on('data', (rawData) => {
-          const { transcript } = rawData.results[0].alternatives[0];
-          this.setState({
-            text: transcript,
-          });
-          // const { transcript } = rawData.alternatives[0];
-          // console.log(rawData);
-          // this.setState({
-          //   text: rawData.alternatives[0].transcript,
-          // });
-          const captionSegment = document.querySelector('.caption-segment');
-          if (captionSegment) {
-            document.querySelector('.caption-segment').scrollTop = 9999999;
-            document.querySelector('.caption-segment').innerHTML = transcript;
-          }
-        });
-        stream.on('error', (err) => {
-          console.log(err);
-        });
+        this.handleStream(stream);
+        console.log(this.state.stream);
+        // stream.on('data', (rawData) => {
+        //   const { transcript } = rawData.results[0].alternatives[0];
+        //   this.setState({
+        //     text: transcript,
+        //   });
+        // const { transcript } = rawData.alternatives[0];
+        // console.log(rawData);
+        // this.setState({
+        //   text: rawData.alternatives[0].transcript,
+        // });
+        //   const captionSegment = document.querySelector('.caption-segment');
+        //   if (captionSegment) {
+        //     document.querySelector('.caption-segment').scrollTop = 9999999;
+        //     document.querySelector('.caption-segment').innerHTML = transcript;
+        //   }
+        // });
+        // stream.on('error', (err) => {
+        //   console.log(err);
+        // });
         document.querySelector('#stop').onclick = stream.stop.bind(stream);
       }).catch((error) => {
         console.log(error);
@@ -584,6 +631,7 @@ class LiveTranscript extends Component {
       // };
       // this.setState({ audioSource: 'mic' });
       // this.onRecordAudio();
+      // this.onListenClick();
       console.log(stream)
     } catch (err) {
       console.error(`Error: ${err}`);
@@ -598,9 +646,11 @@ class LiveTranscript extends Component {
     }
     document.querySelector('#video').srcObject = null;
     this.setState({
-      stream: undefined
+      stream: undefined,
+      showTextBox: false
     });
     this.stopTranscription();
+    this.reset();
   }
 
   handleDragStart(e) {
@@ -620,7 +670,8 @@ class LiveTranscript extends Component {
   render() {
 
     const {
-      audioSource
+      audioSource,
+      showTextBox
     } = this.state;
 
     const messages = this.getFinalAndLatestInterimResult();
@@ -628,132 +679,187 @@ class LiveTranscript extends Component {
 
     return (
       <>
-        <div className="App">
-          <div className="page-container">
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <Card className="capture-btn-container">
-                { this.state.stream ? (
-                <Space>
-                  <Button id='stopCapture' onClick={this.stopCapture.bind(this)} type="primary" shape="round" danger>
-                    Stop
-                  </Button>
-                </Space>) : (<><Divider>What do you want to capture ?</Divider><Space><Button id='start'
-                    className="capture-btn"
-                    onClick={this.startCapture.bind(this)}
-                    icon={<DesktopOutlined />}
-                  >
-                    Screen
-                  </Button>
-                  <Button id='start'
-                    className="capture-btn"
-                    onClick={this.cameraCapture}
-                    icon={<VideoCameraOutlined />}
-                  >
-                    Camera
-                  </Button>
-                </Space></>)}
-              </Card>
-              <Card
-                className="player-theater-card"
-              >
-                <div className="player-theater-container" onMouseOver={this.showVideoControls} onMouseOut={this.hideVideoControls}>
-                  <div className={ this.state.stream ? "video-container" : "video-container no-stream" }>
-                    <video className="video-stream" id="video" autoPlay muted>
-                      <source type="video/mp4" />
-                    </video>
+        {/* <Dropzone
+      onDrop={acceptedFiles => console.log(acceptedFiles)}
+      onDropAccepted={this.handleUserFile}
+      onDropRejected={this.handleUserFileRejection}
+      maxSize={200 * 1024 * 1024}
+      accept="audio/wav, audio/mp3, audio/mpeg, audio/l16, audio/ogg, audio/flac, .mp3, .mpeg, .wav, .ogg, .opus, .flac" // eslint-disable-line
+      disableClick
+      className="dropzone _container _container_large"
+      activeClassName="dropzone-active"
+      rejectClassName="dropzone-reject"
+      ref={(node) => {
+        this.dropzone = node;
+      }}
+    > */}
+        {/* {({getRootProps, getInputProps}) => ( */}
+          <div className="App">
+                  <div className="page-container">
+
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      <Card className="capture-btn-container">
+                        {this.state.stream ? (
+                          <Space>
+                            <Button id='stopCapture' onClick={this.stopCapture.bind(this)} type="primary" shape="round" danger>
+                              Stop
+            </Button>
+                          </Space>) : (<><Divider>What do you want to capture ?</Divider><Space><Button id='start'
+                            className="capture-btn"
+                            onClick={this.startCapture.bind(this)}
+                            icon={<DesktopOutlined />}
+                          >
+                            Screen
+            </Button>
+                            <Button id='camera-btn'
+                              className="capture-btn"
+                              onClick={this.cameraCapture}
+                              icon={<VideoCameraOutlined />}
+                            >
+                              Camera
+            </Button>
+                            <Button id='file-upload'
+                              className="capture-btn"
+                              onClick={this.handleUploadClick}
+                              icon={<UploadOutlined />}
+                            >
+                              File
+            </Button>
+                          </Space></>)}
+                      </Card>
+                      <div className="live-transcript-container">
+                        <Card
+                          className="player-theater-card"
+                        >
+                          <div className="player-theater-container" onMouseOver={this.showVideoControls} onMouseOut={this.hideVideoControls}>
+                            <div className={this.state.stream ? "video-container" : "video-container no-stream"}>
+                              <video className="video-stream" id="video" autoPlay muted>
+                                <source type="video/mp4" />
+                              </video>
+                            </div>
+
+                            {!this.state.stream ? (<div
+                              className="caption-window-container"
+                            >
+                              <div className="no-stream-content">
+                                <PlayCircleOutlined className="no-stream-container-icon" />
+                                <span className="stream-container-text">Captured media will be displayed here</span>
+                              </div>
+                            </div>) : (<><div
+                              className="caption-window-container"
+                              onMouseDown={this.handleDragStart}
+                              onMouseUp={this.handleDragEnd}
+                              onMouseMove={this.handleDrag}
+                              onTouchStart={this.handleDragStart}
+                              onTouchEnd={this.handleDragEnd}
+                              onTouchMove={this.handleDrag}
+                            >
+                              <div className="caption-window">
+                                <span className="caption-text">
+                                  {/* <span className="caption-visual-line"> */}
+                                  {this.state.showCaption && <span className="caption-segment">This is caption</span>}
+                                  {/* </span> */}
+                                </span>
+                              </div>
+                            </div>
+
+                              <div className="video-controls-bottom">
+                                <Row className="controls-container" justify="end">
+                                  <div className="caption-menu-button fullscreen-btn transcript-switch-container">
+                                    <Switch className="transcript-swt-btn" checkedChildren="S2T" unCheckedChildren="TOFF" onChange={this.onShowTextBox} />
+                                  </div>
+                                  {/* <Button
+                      id='s2t'
+                      onClick={this.onListenClick}
+                      className="caption-menu-button fullscreen-btn"
+                      shape="circle"
+                      size="large"
+                      icon={audioSource === "mic" ? <AudioOutlined className="video-controls-icon" /> : <AudioMutedOutlined className="video-controls-icon" />}
+                    /> */}
+                                  <Button
+                                    id='cc'
+                                    onClick={this.handleShowCaption}
+                                    className="caption-menu-button fullscreen-btn"
+                                    shape="circle"
+                                    size="large"
+                                    icon={<ProfileFilled className="video-controls-icon" />}
+                                  />
+                                  <CaptionMenu
+                                    onChangeLanguage={this.onChangeLanguage.bind(this)}
+                                    model={this.state.model}
+                                    handleShowMenu={this.handleShowMenu}
+                                  />
+                                  <FullscreenBtn />
+                                </Row>
+                              </div></>)}
+
+
+                          </div>
+                          {/* } */}
+                        </Card>
+                        {showTextBox && <Card className="transcript-text-card" title="Word Timings"><Transcript messages={messages} /></Card>}
+                      </div>
+                      <ModelDropdown onChangeLanguage={this.onChangeLanguage.bind(this)} model={this.state.model} />
+                      <Space>
+                        <Button
+                          onClick={this.onListenClick.bind(this)}
+                          // onClick={this.handleMicClick}
+                          type="primary" shape="round" icon={<AudioOutlined />}>
+                          Record Audio
+                      </Button>
+                        <Button id='stop' type="primary" shape="round" danger>
+                          Stop
+                      </Button>
+                        <Button id='reset' onClick={this.onResetClick.bind(this)} type="primary" shape="round" danger>
+                          Reset
+                      </Button>
+                      </Space>
+                      <div>
+                        <TextArea
+                          value={this.state.text}
+                          placeholder="Text"
+                          autoSize={{ minRows: 3 }}
+                          style={{ fontSize: '30px', width: '700px', height: '200px', overFlowY: 'scroll' }}
+                        />
+                      </div>
+                      <div></div>
+                    </Space>
                   </div>
-
-                  { !this.state.stream ? (<div
-                    className="caption-window-container"
-                  >
-                    <div className="no-stream-content">
-                      <PlayCircleOutlined className="no-stream-container-icon" />
-                      <span className="stream-container-text">Captured media will be displayed here</span>
-                    </div>
-                  </div>) : (<><div
-                    className="caption-window-container"
-                    onMouseDown={this.handleDragStart}
-                    onMouseUp={this.handleDragEnd}
-                    onMouseMove={this.handleDrag}
-                    onTouchStart={this.handleDragStart}
-                    onTouchEnd={this.handleDragEnd}
-                    onTouchMove={this.handleDrag}
-                  >
-                    <div className="caption-window">
-                      <span className="caption-text">
-                        {/* <span className="caption-visual-line"> */}
-                        { this.state.showCaption && <span className="caption-segment">This is caption</span>}
-                        {/* </span> */}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="video-controls-bottom">
-                    <Row className="controls-container" justify="end">
-                      {/* <div className="caption-menu-button fullscreen-btn transcript-switch-container">
-                        <Switch className="transcript-swt-btn" checkedChildren="S2T" unCheckedChildren="关闭" defaultChecked />
-                      </div> */}
-                      <Button
-                        id='s2t'
-                        onClick={this.onListenClick}
-                        className="caption-menu-button fullscreen-btn"
-                        shape="circle"
-                        size="large"
-                        icon={audioSource === "mic" ? <AudioOutlined className="video-controls-icon" /> : <AudioMutedOutlined className="video-controls-icon"/>}
-                      />
-                      <Button
-                        id='cc'
-                        onClick={this.handleShowCaption}
-                        className="caption-menu-button fullscreen-btn"
-                        shape="circle"
-                        size="large"
-                        icon={<ProfileFilled className="video-controls-icon" />}
-                      />
-                      <CaptionMenu
-                        onChangeLanguage={this.onChangeLanguage.bind(this)}
-                        model={this.state.model}
-                        handleShowMenu={this.handleShowMenu}
-                      />
-                      <FullscreenBtn />
-                    </Row>
-                  </div></>)}
-
-
                 </div>
-                {/* } */}
-              </Card>
-              {/* <ModelDropdown onChangeLanguage={this.onChangeLanguage.bind(this)} model={this.state.model} /> */}
-              <Space>
-                <Button
-                onClick={this.onListenClick.bind(this)}
-                // onClick={this.handleMicClick}
-                type="primary" shape="round" icon={<AudioOutlined />}>
-                  Record Audio
-                            </Button>
-                <Button id='stop' type="primary" shape="round" danger>
-                  Stop
-                            </Button>
-                <Button id='reset' onClick={this.onResetClick.bind(this)} type="primary" shape="round" danger>
-                  Reset
-                            </Button>
-              </Space>
-              <video className="video-capture" id="video" autoPlay muted>
-                <source type="video/mp4" />
-              </video>
-              <div>
-              <Transcript messages={messages} />
-                <TextArea
-                  value={messages}
-                  placeholder="Text"
-                  autoSize={{ minRows: 3 }}
-                  style={{ fontSize: '30px', width: '700px', height: '200px', overFlowY: 'scroll' }}
-                />
+
+        <Dropzone
+          onDrop={acceptedFiles => console.log(acceptedFiles)}
+          onDropAccepted={this.handleUserFile}
+          onDropRejected={this.handleUserFileRejection}
+          maxSize={200 * 1024 * 1024}
+          accept="audio/wav, audio/mp3, audio/mpeg, audio/l16, audio/ogg, audio/flac, .mp3, .mpeg, .wav, .ogg, .opus, .flac" // eslint-disable-line
+          disableClick
+          className="dropzone _container _container_large"
+          // activeClassName="dropzone-active"
+          rejectClassName="dropzone-reject"
+          ref={(node) => {
+            this.dropzone = node;
+          }}
+        >
+          {({ getRootProps, getInputProps }) => (
+            <section>
+              <div {...getRootProps()}>
+                <input {...getInputProps()} />
+                <div className="drop-info-container">
+                  <div className="drop-info">
+                    <h1>Drop an audio file here.</h1>
+                    <p>Watson Speech to Text supports .mp3, .mpeg, .wav, .opus, and
+                    .flac files up to 200mb.</p>
+                  </div>
+                </div>
+
               </div>
-              <div></div>
-            </Space>
-          </div>
-        </div>
+            </section>
+          )}
+        </Dropzone>
+        {/* </Dropzone> */}
       </>
+
     );
   }
 }

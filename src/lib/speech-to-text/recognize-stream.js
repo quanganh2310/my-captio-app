@@ -211,6 +211,7 @@ RecognizeStream.prototype.initialize = function() {
   };
 
   this.socket.onopen = function() {
+    console.log('WebSocket Client Connected');
     self.sendJSON(openingMessage);
     /**
      * emitted once the WebSocket connection has been established
@@ -221,6 +222,7 @@ RecognizeStream.prototype.initialize = function() {
 
   this.socket.onclose = function(e) {
     // if (self.listening) {
+      console.log('WebSocket Client Disconnected');
     self.listening = false;
     self.push(null);
     // }
