@@ -1,3 +1,6 @@
+import { randomAvatar } from './_utils';
+import jwt from 'jsonwebtoken';
+
 const waitTime = (time = 100) => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -10,6 +13,60 @@ async function getFakeCaptcha(req, res) {
   await waitTime(2000);
   return res.json('captcha-xxx');
 } // 代码中会兼容本地 service mock 以及部署站点的静态数据
+
+const EnumRoleType = {
+  ADMIN: 'admin',
+  USER: 'user',
+  DEFAULT: 'guest',
+  DEVELOPER: 'developer',
+}
+
+const userPermission = {
+  DEFAULT: {
+    // visit: ['1', '2', '21', '7', '5', '51', '52', '53'],
+    role: EnumRoleType.DEFAULT,
+  },
+  ADMIN: {
+    role: EnumRoleType.ADMIN,
+  },
+  USER: {
+    role: EnumRoleType.USER,
+  },
+  DEVELOPER: {
+    role: EnumRoleType.DEVELOPER,
+  },
+}
+
+const users = [
+  {
+    id: 0,
+    username: 'admin',
+    password: 'admin',
+    permissions: userPermission.ADMIN,
+    avatar: randomAvatar(),
+  },
+  {
+    id: 1,
+    username: 'guest',
+    password: 'guest',
+    permissions: userPermission.DEFAULT,
+    avatar: randomAvatar(),
+  },
+  {
+    id: 2,
+    username: 'develop',
+    password: 'develop',
+    permissions: userPermission.DEVELOPER,
+    avatar: randomAvatar(),
+  },
+  {
+    id: 3,
+    username: 'user',
+    password: 'user',
+    permissions: userPermission.USER,
+    avatar: randomAvatar(),
+  },
+]
 
 export default {
   // 支持值为 Object 和 Array
@@ -84,6 +141,40 @@ export default {
       address: 'Sidney No. 1 Lake Park',
     },
   ],
+  'POST /account/login': (req, res) => {
+    const { password, userName, type } = req.body;
+    const user = users.filter(item => item.username === userName)
+
+    if (user.length > 0 && user[0].password === password) {
+      const token = jwt.sign({ id: user[0].id }, "bezkoder-secret-key", {
+        expiresIn: 86400 // 24 hours
+      });
+      const now = new Date()
+      now.setDate(now.getDate() + 1)
+      res.cookie(
+        'token',
+        JSON.stringify({ id: user[0].id, deadline: now.getTime() }),
+        {
+          maxAge: 900000,
+          httpOnly: true,
+        }
+      )
+      res.send({
+        status: 'ok',
+        type,
+        userId: user[0].id,
+        userName: userName,
+        currentAuthority: 'admin',
+        token
+      });
+    } else {
+      res.send({
+        status: 'error',
+        type,
+        currentAuthority: 'guest',
+      });
+    }
+  },
   'POST /api/login/account': async (req, res) => {
     const { password, userName, type } = req.body;
     await waitTime(2000);
@@ -119,6 +210,12 @@ export default {
       status: 'error',
       type,
       currentAuthority: 'guest',
+    });
+  },
+  'GET /user/logout'(req, res) {
+    res.clearCookie('token');
+    res.send({
+      status: 'oke',
     });
   },
   'POST /api/register': (req, res) => {

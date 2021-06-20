@@ -109,7 +109,10 @@ module.exports = function recognizeMicrophone(options) {
       bufferSize: options.bufferSize
     });
 
-    var pm = options.mediaStream ? Promise.resolve(options.mediaStream) : getUserMedia({ video: false, audio: { deviceId: { exact: 'b41b01f84efb8bf026de1028a9cff301b138087bc6e63a5adf72aa4df9a3bef3' } } });
+
+    var pm = options.audioSourceId ? getUserMedia({ video: false, audio: { deviceId: { exact: options.audioSourceId } } }) :
+    (options.mediaStream ? Promise.resolve(options.mediaStream) : getUserMedia({ video: false, audio: true }));
+
     pm.then(function(mediaStream) {
       micStream.setStream(mediaStream);
       if (keepMic) {

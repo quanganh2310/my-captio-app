@@ -5,6 +5,7 @@ import { Radio, Switch, Slider, Tooltip } from 'antd';
 import { SettingFilled } from '@ant-design/icons';
 
 import ModelDropdown from './ModelDropdown';
+import CaptionSettingIcon from '../../../assets/icons/caption-setting-icon.svg';
 
 const colorOptions = [
   { label: 'White', value: 'white' },
@@ -115,12 +116,11 @@ export class CaptionMenu extends Component {
     const { onChangeLanguage, model } = this.props;
 
     const menu = (
-      <div
-        className="caption-menu-container"
-      >
+      <div className="caption-menu">
+        <div className="caption-menu-container">
         <Row className="caption-menu-item" justify="start">
-          <Col span={11}>Language</Col>
-          <Col span={13}>
+          <Col span={8} className="menu-item-title">Language</Col>
+          <Col span={16} className="menu-item-content">
             <ModelDropdown
               className="model-selector"
               onChangeLanguage={onChangeLanguage}
@@ -129,8 +129,8 @@ export class CaptionMenu extends Component {
           </Col>
         </Row>
         <Row className="caption-menu-item" justify="start">
-          <Col span={11}>Font size</Col>
-          <Col span={13}>
+          <Col span={8} className="menu-item-title">Text size</Col>
+          <Col span={16} className="menu-item-content">
             <Slider
               className="font-slider"
               min={0.5}
@@ -142,8 +142,8 @@ export class CaptionMenu extends Component {
           </Col>
         </Row>
         <Row className="caption-menu-item" justify="start">
-          <Col span={11}>Font color</Col>
-          <Col span={13}>
+          <Col span={8} className="menu-item-title">Text color</Col>
+          <Col span={16} className="menu-item-content">
             <Radio.Group
               size="small"
               className="color-group"
@@ -158,7 +158,6 @@ export class CaptionMenu extends Component {
                     value={option.value}
                     style={{
                       borderColor: option.value,
-                      borderRadius: '50%',
                       backgroundColor: option.value
                     }}
                   >
@@ -169,8 +168,8 @@ export class CaptionMenu extends Component {
           </Col>
         </Row>
         <Row className="caption-menu-item" justify="start">
-          <Col span={11}>Background color</Col>
-          <Col span={13}>
+          <Col span={8} className="menu-item-title">Background</Col>
+          <Col span={16} className="menu-item-content">
             <Radio.Group
               size="small"
               value={backgroundColor}
@@ -184,7 +183,6 @@ export class CaptionMenu extends Component {
                     value={option.value}
                     style={{
                       borderColor: option.value,
-                      borderRadius: '50%',
                       backgroundColor: option.value
                     }}
                   >
@@ -194,30 +192,30 @@ export class CaptionMenu extends Component {
             </Radio.Group>
           </Col>
         </Row>
-        <Row justify="start">
-          <Col span={11}>Transparent background</Col>
-          <Col span={13}>
+        <Row className="caption-menu-item" justify="start">
+          <Col span={14} className="menu-item-title">Transparent background</Col>
+          <Col span={10} className="menu-item-content">
             <Switch onChange={this.onChangeTransparent} />
           </Col>
         </Row>
       </div>
-
+      </div>
     );
 
     return (
       <div
       ref={node => { this.node = node; }}
       >
-        <Tooltip placement="top" title="Setting">
+        <Tooltip placement="top" title="Caption Settings">
           <Button
-            size="large"
+            id='stopCapture'
             className="caption-menu-button"
-            shape="circle"
-            icon={<SettingFilled className="video-controls-icon" />}
             onClick={this.handleClick}
-          />
+          >
+            <img src={CaptionSettingIcon} alt="stopBtn"/>
+          </Button>
         </Tooltip>
-        {showMenu && menu}
+          {showMenu && menu}
       </div>
     );
   }

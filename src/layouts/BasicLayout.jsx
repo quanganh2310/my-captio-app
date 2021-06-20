@@ -11,7 +11,7 @@ import { Result, Button } from 'antd';
 import Authorized from '@/utils/Authorized';
 import RightContent from '@/components/GlobalHeader/RightContent';
 import { getMatchMenu } from '@umijs/route-utils';
-import logo from '../assets/logo.svg';
+import logo from '../assets/captio-group.svg';
 
 const noMatch = (
   <Result
@@ -134,23 +134,23 @@ const BasicLayout = (props) => {
           <span>{route.breadcrumbName}</span>
         );
       }}
-      footerRender={() => {
-        if (settings.footerRender || settings.footerRender === undefined) {
-          return defaultFooterDom;
-        }
+      // footerRender={() => {
+      //   if (settings.footerRender || settings.footerRender === undefined) {
+      //     return defaultFooterDom;
+      //   }
 
-        return null;
-      }}
+      //   return null;
+      // }}
       menuDataRender={menuDataRender}
       rightContentRender={() => <RightContent />}
       postMenuData={(menuData) => {
         menuDataRef.current = menuData || [];
         return menuData || [];
       }}
-      waterMarkProps={{
-        content: 'Captio',
-        fontColor: 'rgba(24,144,255,0.15)',
-      }}
+      // waterMarkProps={{
+      //   content: 'Captio',
+      //   fontColor: '#f3f0ff',
+      // }}
     >
       <Authorized authority={authorized.authority} noMatch={noMatch}>
         {children}

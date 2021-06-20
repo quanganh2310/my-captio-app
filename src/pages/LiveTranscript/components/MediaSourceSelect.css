@@ -1,0 +1,27 @@
+
+.mediaSrc-selector {
+  width: 22%;
+  margin-right: 1em;
+}
+
+.mediaSrc-select-title {
+  margin-right: 1em;
+}
+
+.mediaSrc-selector .ant-select-selector {
+  border: 0.75px solid #A09EF3 !important;
+  box-sizing: border-box !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: white !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+}
+
+.mediaSrc-selector .ant-select-arrow {
+  color: #A09EF3 !important;
+}
+
+.select-icon {
+  margin-right: 1em;
+}

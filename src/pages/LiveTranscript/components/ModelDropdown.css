@@ -1,23 +1,28 @@
 
-.ant-select-selector {
+.model-selector .ant-select-selector {
   background: none !important;
   color: white;
+  border: 0.5px solid #FFFFFF !important;
+  box-sizing: border-box;
+  border-radius: 8px !important;
+  height: 3em !important;
+  align-items: center !important;
 }
 
-.ant-select-arrow {
+.model-selector .ant-select-arrow {
   color: white;
 }
 
-.model-option {
+/* .model-selector .model-option {
   background: rgba(102, 102, 102, 0.85) !important;
   color: white !important;
 }
 
-.model-option:hover {
+.model-selector .model-option:hover {
   background: rgba(140, 140, 140, 0.85) !important;
   color: white !important;
-}
+} */
 
-.ant-radio-button-wrapper:not(:first-child)::before {
+/* .ant-radio-button-wrapper:not(:first-child)::before {
   display: none;
-}
+} */

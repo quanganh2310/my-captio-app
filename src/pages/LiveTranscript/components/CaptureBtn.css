@@ -1,0 +1,111 @@
+.capture-btn {
+  width: 327.54px;
+  height: 104.14px;
+  /* background: linear-gradient(180deg, #7E83F8 0%, #5956FF 100%); */
+  /* background-image: url('../../../../public/button_background.png'); */
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 0 !important;
+}
+
+.capture-btn:active {
+  transform: scale(0.98);
+            /* Scaling button to 0.98 to its original size */
+  box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+}
+
+.capture-btn:after {
+  /* content: "";
+  background: white;
+  display: block;
+  position: absolute;
+  padding-top: 0;
+  padding-left: 0;
+  margin-left: -20px!important;
+  margin-top: -120%;
+  opacity: 0;
+  transition: all 0.8s */
+}
+
+.capture-btn:active:after {
+  padding: 0;
+  margin: 0;
+  opacity: 1;
+  transition: 0s
+}
+
+.capture-btn-contents {
+  font-style: normal;
+  font-weight: 450;
+  font-size: 16px;
+  line-height: 17px;
+  color: white;
+  height: auto;
+  width: 50%;
+  text-align: left;
+}
+
+.capture-btn-icon {
+  width: 25%;
+}
+
+.capture-btn-image {
+  position: absolute;
+  right: -9.2%;
+  bottom: -21%;
+}
+
+#macBookFrame {
+  width: 132px;
+}
+
+.capture-btn-img-container {
+  position: relative;
+}
+
+#leftIcon {
+  position: absolute;
+  left: -5%;
+  bottom: 22%;
+}
+
+#rightIcon {
+  position: absolute;
+  left: 86%;
+  top: -25%;
+}
+
+.rectangle-20 {
+  position: absolute;
+  left: 1.5%;
+  bottom: 5.14%;
+}
+
+.rectangle-21 {
+  position: absolute;
+  left: 8.7%;
+  bottom: 20%;
+}
+
+/* .rectangle-22 {
+  position: absolute;
+  right: 11%;
+  bottom: 60%;
+  z-index: 51;
+} */
+
+.rectangle-23 {
+  position: absolute;
+  top: 5%;
+  right: 2%;
+}
+
+.rectangle-24 {
+  position: absolute;
+  top: 12%;
+  left: 7%;
+}
+
+

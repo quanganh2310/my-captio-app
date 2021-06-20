@@ -1,26 +1,46 @@
 /* eslint-disable no-param-reassign */
 import React, { Component } from 'react';
 import Dropzone from 'react-dropzone';
-import { Card, Row, Switch, Input } from 'antd';
+import { Card, Row, Switch, Input, Col } from 'antd';
 import { Space, Button, Divider } from 'antd';
 import { AudioOutlined, ProfileFilled, AudioMutedOutlined, UploadOutlined } from '@ant-design/icons';
 import { DesktopOutlined, VideoCameraOutlined, PlayCircleOutlined } from '@ant-design/icons';
-// eslint-disable-next-line import/no-webpack-loader-syntax
-// import SampleVideo from '-!file-loader!./sintel-short.mp4';
+import VideoToAudio from 'video-to-audio';
+import classNames from 'classnames';
 
+// eslint-disable-next-line import/no-webpack-loader-syntax;
+import SampleVideo from '-!file-loader!./sintel-short.mp4';
 import './App.css';
+import styles from './style.less';
+
+import LeftIcon from '../../../public/icons/Group45.svg';
+import RightIcon1 from '../../../public/icons/Group46.svg';
+import RightIcon2 from '../../../public/icons/Group 47.svg';
+import RightIcon3 from '../../../public/icons/Group 36.svg';
+import Frame1 from '../../../public/icons/Frame1.png';
+import Frame2 from '../../../public/icons/Frame2.png';
+import Frame3 from '../../../public/icons/Frame3.png';
+import StopBtnIcon from '../../assets/icons/Group 73.svg';
+import RecordingIcon from '../../assets/icons/Group 12.svg';
+import DocumentIcon from '../../assets/icons/document-icon.png';
 
 import ModelDropdown from './components/ModelDropdown';
 import CaptionMenu from './components/CaptionMenu';
 import FullscreenBtn from './components/FullscreenBtn';
+import MediaSrcSelect from './components/MediaSourceSelect';
+import CaptionBtn from './components/CaptureBtn';
+import UploadModal from './components/UploadModal';
 
 import recognizeMic from '../../lib/speech-to-text/recognize-microphone';
 import recognizeMicrophone from '../../lib/ibm/watson-speech/speech-to-text/recognize-microphone';
-import recognizeFile from '../../lib/ibm/watson-speech/speech-to-text/recognize-file';
+import recognizeFile from '../../lib/speech-to-text/recognize-file';
+import recognizeVideo from '../../lib/speech-to-text/recognize-video';
 import Transcript from './components/transcript.jsx';
+import contentType from '../../lib/ibm/watson-speech/speech-to-text/content-type';
 // import TimingView from './components/timing.jsx';
 
 const { TextArea } = Input;
+const { Meta } = Card;
 
 const displayMediaOptions = {
   video: {
@@ -99,6 +119,8 @@ class LiveTranscript extends Component {
       rawMessages: [],
       formattedMessages: [],
       audioSource: null,
+      audioInputs: [],
+      videoInputs: [],
       speakerLabels: false,
       keywords: [],
       settingsAtStreamStart: {
@@ -107,23 +129,35 @@ class LiveTranscript extends Component {
         speakerLabels: false,
       },
       error: null,
-      creds: undefined,
+      creds: {},
       text: '',
       stream: undefined,
+      mediaStream: null,
+      audioSourceId: '',
       stereoMix: '',
+      currentAudio: null,
+      currentVideo: null,
       showMenu: false,
       showCaption: true,
-      showTextBox: false
+      showTextBox: false,
+      captureType: '',
+      matchingTextIndex: 0,
+      uploadModalVisible: false,
+      transcriptEnd: true
     }
     this.onChangeLanguage = this.onChangeLanguage.bind(this);
     this.onListenClick = this.onListenClick.bind(this);
     this.onResetClick = this.onResetClick.bind(this);
     this.stopCapture = this.stopCapture.bind(this);
+    this.onRecordAudio = this.onRecordAudio.bind(this);
     this.startCapture = this.startCapture.bind(this);
     this.cameraCapture = this.cameraCapture.bind(this);
     this.handleDragStart = this.handleDragStart.bind(this);
     this.handleDragEnd = this.handleDragEnd.bind(this);
     this.handleDrag = this.handleDrag.bind(this);
+    this.onChangeAudioInput = this.onChangeAudioInput.bind(this);
+    this.onChangeVideoInput = this.onChangeVideoInput.bind(this);
+    this.handleSyncText = this.handleSyncText.bind(this);
 
 
     this.reset = this.reset.bind(this);
@@ -145,6 +179,7 @@ class LiveTranscript extends Component {
     this.getCurrentInterimResult = this.getCurrentInterimResult.bind(this);
     this.getFinalAndLatestInterimResult = this.getFinalAndLatestInterimResult.bind(this);
     this.handleError = this.handleError.bind(this);
+
   }
 
   componentDidMount() {
@@ -157,17 +192,42 @@ class LiveTranscript extends Component {
     // eslint-disable-next-line
     this.setState({ tokenInterval: setInterval(this.fetchToken, 50 * 60 * 1000) });
 
+    const playerTheaterHeight = document.querySelector(".player-theater-container");
+    const textBox = document.querySelector(".transcript-text-card");
+    if (playerTheaterHeight && textBox) {
+      textBox.style.height = playerTheaterHeight.style.height;
+    }
+
     navigator.mediaDevices.enumerateDevices()
       .then((devices) => {
         devices.forEach((device) => {
+
+          if (device.kind === "audioinput") {
+            // audioInputs.push(device);
+            this.setState({
+              audioInputs: [...this.state.audioInputs, device]
+            });
+          }
+          else if (device.kind === "videoinput") {
+            // videoInputs.push(device);
+            this.setState({
+              videoInputs: [...this.state.videoInputs, device]
+            });
+          }
           if (device.label.includes("Stereo Mix")) {
             this.setState({
-              stereoMix: device.deviceId
+              stereoMix: device.deviceId,
             });
           }
           console.log(`${device.kind}: ${device.label
             } id = ${device.deviceId}`);
         });
+
+        this.setState({
+          currentAudio: this.state.audioInputs[0].deviceId,
+          currentVideo: this.state.videoInputs[0].deviceId
+        });
+
       })
       .catch((err) => {
         console.log(`${err.name}: ${err.message}`);
@@ -264,7 +324,7 @@ class LiveTranscript extends Component {
     //  * a few other things for backwards compatibility and sane defaults
     // In addition to this, it passes other service-level options along to the RecognizeStream that
     // manages the actual WebSocket connection.
-    this.handleStream(recognizeMicrophone(this.getRecognizeOptions({mediaStream: this.state.stream})));
+    this.handleStream(recognizeMicrophone(this.getRecognizeOptions({ mediaStream: this.state.stream })));
   }
 
   handleUploadClick() {
@@ -272,18 +332,30 @@ class LiveTranscript extends Component {
     if (this.state.audioSource === 'upload') {
       this.stopTranscription();
     } else {
-      this.dropzone.open();
+      this.showUploalModal();
     }
   }
 
-  handleUserFile(files) {
-    const file = files[0];
+  async handleUserFile(files) {
+    let file = files[0];
     if (!file) {
       return;
     }
     this.reset();
-    this.setState({ audioSource: 'upload' });
+    this.setState({
+      audioSource: 'upload',
+      captureType: 'file',
+      transcriptEnd: false,
+    });
     console.log(file);
+    const fileType = contentType.fromFilename(file);
+    // if (fileType === "video/mp4") {
+    //   let sourceVideoFile = file;
+    //   let targetAudioFormat = 'mp3'
+    //   let convertedAudioDataObj = await VideoToAudio.convert(sourceVideoFile, targetAudioFormat);
+    //   file = convertedAudioDataObj;
+    // }
+    console.log(fileType);
     this.playFile(file);
   }
 
@@ -305,41 +377,54 @@ class LiveTranscript extends Component {
     //  nice with react (options.outputElement)
     //  * a few other things for backwards compatibility and sane defaults
     // In addition to this, it passes other service-level options along to the RecognizeStream
+
     // that manages the actual WebSocket connection.
-    // fetch('http://localhost:8002/api/v1/credentials')
-    //   .then((response) => {
-    //     return response.text();
-    //   }).then((token) => {
-    //     const data = JSON.parse(token)
-    //     console.log('token is', data.accessToken)
-    //     const stream = recognizeFile({
-    //       file,
-    //       play: true,
-    //       realtime: true,
-    //       model: this.state.model,
-    //       url: data.serviceUrl,
-    //       token: data.accessToken,
-    //       accessToken: data.accessToken,
-    //       speakerLabels: false,
-    //       objectMode: true, // send objects instead of text
-    //       // extractResults: true, // convert {results: [{alternatives:[...]}], result_index: 0} to {alternatives: [...], index: 0}
-    //       format: true, // optional - performs basic formatting on the results such as capitals an periods,
-    //       interim_results: true,
-    //       smart_formatting: true,
-    //       word_alternatives_threshold: 0.01,
-    //       resultsBySpeaker: false,
-    //       timestamps: true,
-    //     });
-    //     this.handleStream(stream);
-    //   }).catch((error) => {
-    //     console.log(error);
-    //   });
-    this.handleStream(recognizeFile(this.getRecognizeOptions({
-      file,
-      play: true, // play the audio out loud
-      // use a helper stream to slow down the transcript output to match the audio speed
-      realtime: true,
-    })));
+    fetch('http://localhost:8002/api/v1/credentials')
+      .then((response) => {
+        return response.text();
+      }).then((token) => {
+        const data = JSON.parse(token)
+        console.log('token is', data.accessToken)
+        const stream = recognizeFile({
+          file,
+          play: false,
+          realtime: false,
+          model: this.state.model,
+          url: data.serviceUrl,
+          token: data.accessToken,
+          accessToken: data.accessToken,
+          speakerLabels: false,
+          objectMode: true, // send objects instead of text
+          // extractResults: true, // convert {results: [{alternatives:[...]}], result_index: 0} to {alternatives: [...], index: 0}
+          format: true, // optional - performs basic formatting on the results such as capitals an periods,
+          interim_results: true,
+          smart_formatting: true,
+          word_alternatives_threshold: 0.01,
+          resultsBySpeaker: false,
+          timestamps: true,
+        });
+        this.handleStream(stream);
+        document.querySelector('#audio-pause').onclick = stream.recognizeStream.pause.bind(stream.recognizeStream);
+        document.querySelector('#audio-resume').onclick = stream.recognizeStream.resume.bind(stream.recognizeStream);
+        document.querySelector('#audio-stop').onclick = stream.recognizeStream.stop.bind(stream.recognizeStream);
+      }).catch((error) => {
+        console.log(error);
+      });
+
+    const audio = document.querySelector('#audio');
+    const fileType = contentType.fromFilename(file);
+    const stream = URL.createObjectURL(new Blob([file], { type: fileType }));
+    audio.src = stream;
+    // this.setState({
+    //   stream
+    // });
+    // audio.play();
+    // this.handleStream(recognizeFile(this.getRecognizeOptions({
+    //   file,
+    //   play: true, // play the audio out loud
+    //   // use a helper stream to slow down the transcript output to match the audio speed
+    //   realtime: true,
+    // })));
   }
 
   handleStream(stream) {
@@ -402,7 +487,8 @@ class LiveTranscript extends Component {
   handleTranscriptEnd() {
     // note: this function will be called twice on a clean end,
     // but may only be called once in the event of an error
-    this.setState({ audioSource: null });
+    this.setState({ audioSource: null, transcriptEnd: true });
+    console.log('End');
   }
 
   handleModelChange(model) {
@@ -501,25 +587,102 @@ class LiveTranscript extends Component {
 
   onShowTextBox = (checked) => {
     this.setState({ showTextBox: checked });
-    if (checked) {
-      const transcriptTextBox = document.querySelector('.transcript-text-card');
-      const videoContainer = document.querySelector('.video-container');
-      if (transcriptTextBox && videoContainer) {
-        transcriptTextBox.clientHeight = videoContainer.clientHeight;
+    // if (checked) {
+    //   const playerTheaterHeight = document.querySelector(".player-theater-container");
+    //   const textBox = document.querySelector(".transcript-text-card");
+    //   if (playerTheaterHeight && textBox) {
+    //     textBox.style.height = playerTheaterHeight.style.height;
+    //   }
+    //   const transcriptTextBox = document.querySelector('.transcript-text-card');
+    //   const videoContainer = document.querySelector('.video-container');
+    //   if (transcriptTextBox && videoContainer) {
+    //     transcriptTextBox.clientHeight = videoContainer.clientHeight;
+    //   }
+    //   console.log(videoContainer.clientHeight)
+    // }
+  }
+
+  async onChangeAudioInput(value) {
+    this.setState({
+      currentAudio: value,
+      audioSourceId: value
+    });
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(track => {
+        track.stop();
+      });
+    }
+    const videoElement = document.querySelector('#video');
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio:
+        { deviceId: value ? { exact: value, 'echoCancellation': true } : { exact: this.state.stereoMix, 'echoCancellation': true } },
+      // {deviceId: {exact: stereoMix, 'echoCancellation': true}},
+      video: {
+        deviceId: this.state.currentVideo ? { exact: this.state.currentVideo } : undefined,
+        width: { min: 1024, ideal: 1280, max: 1920 },
+        height: { min: 576, ideal: 720, max: 1080 }
       }
-      console.log(videoContainer.clientHeight)
+    });
+    this.mediaStream = stream;
+    if (videoElement) {
+      videoElement.srcObject = stream;
     }
   }
 
-  onRecordAudio = () => {
+  async onChangeVideoInput(value) {
+    this.setState({
+      currentVideo: value
+    });
+    if (this.mediaStream) {
+      this.mediaStream.getTracks().forEach(track => {
+        track.stop();
+      });
+    }
+    const videoElement = document.querySelector('#video');
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio:
+        { deviceId: this.state.currentAudio ? { exact: this.state.currentAudio, 'echoCancellation': true } : { exact: this.state.stereoMix, 'echoCancellation': true } },
+      // {deviceId: {exact: stereoMix, 'echoCancellation': true}},
+      video: {
+        deviceId: value ? { exact: value } : undefined,
+        width: { min: 1024, ideal: 1280, max: 1920 },
+        height: { min: 576, ideal: 720, max: 1080 }
+      }
+    });
+    this.mediaStream = stream;
+    if (videoElement) {
+      videoElement.srcObject = stream;
+    }
+  }
+
+  onRecordAudio() {
     fetch('http://localhost:8002/api/v1/credentials')
       .then((response) => {
         return response.text();
       }).then((token) => {
-        const data = JSON.parse(token)
+        const data = JSON.parse(token);
         // console.log('token is', data.accessToken)
-        const stream = recognizeMic({
-          mediaStream: this.state.stream,
+
+        // const stream = recognizeMic({
+        //   mediaStream: this.mediaStream,
+        //   audioSourceId: this.state.audioSourceId,
+        //   model: this.state.model,
+        //   url: data.serviceUrl,
+        //   token: data.accessToken,
+        //   accessToken: data.accessToken,
+        //   speakerLabels: false,
+        //   objectMode: true, // send objects instead of text
+        //   // extractResults: true, // convert {results: [{alternatives:[...]}], result_index: 0} to {alternatives: [...], index: 0}
+        //   format: true, // optional - performs basic formatting on the results such as capitals an periods,
+        //   interim_results: true,
+        //   smart_formatting: true,
+        //   word_alternatives_threshold: 0.01,
+        //   resultsBySpeaker: false,
+        //   timestamps: true,
+        // });
+        const stream = recognizeVideo({
+          mediaStream: this.mediaStream,
+          audioSourceId: this.state.audioSourceId,
           model: this.state.model,
           url: data.serviceUrl,
           token: data.accessToken,
@@ -533,9 +696,10 @@ class LiveTranscript extends Component {
           word_alternatives_threshold: 0.01,
           resultsBySpeaker: false,
           timestamps: true,
+          realtime: true,
         });
         this.handleStream(stream);
-        console.log(this.state.stream);
+        console.log(this.state.model);
         // stream.on('data', (rawData) => {
         //   const { transcript } = rawData.results[0].alternatives[0];
         //   this.setState({
@@ -563,10 +727,15 @@ class LiveTranscript extends Component {
 
   onListenClick() {
     if (this.state.audioSource === 'mic') {
-      this.stopTranscription();
+      // this.stopTranscription();
+      this.setState({ audioSource: null });
+      if (this.stream) { this.stream.stop(); this.stream = null; }
       return;
     }
-    this.reset();
+    // if (this.mediaStream) {
+    //   this.mediaStream = null;
+    // }
+    // this.reset();
     this.setState({ audioSource: 'mic' });
     this.onRecordAudio();
   }
@@ -589,14 +758,27 @@ class LiveTranscript extends Component {
       this.stopCapture();
     }
     try {
+      const { currentAudio, currentVideo, stereoMix } = this.state;
       const videoElement = document.querySelector('#video');
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: this.state.stereoMix, 'echoCancellation': true } }, video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio:
+          { deviceId: currentAudio ? { exact: currentAudio, 'echoCancellation': true } : { exact: stereoMix, 'echoCancellation': true } },
+        // {deviceId: {exact: stereoMix, 'echoCancellation': true}},
+        video: {
+          deviceId: currentVideo ? { exact: currentVideo } : undefined,
+          width: { min: 1024, ideal: 1280, max: 1920 },
+          height: { min: 576, ideal: 720, max: 1080 }
+        }
+      });
       if (videoElement) {
         videoElement.srcObject = stream;
       }
       this.setState({
-        stream
+        stream,
+        audioSourceId: currentAudio,
+        captureType: 'camera'
       });
+      this.mediaStream = stream;
       console.log(stream)
     } catch (err) {
       console.error(`Error: ${err}`);
@@ -618,12 +800,18 @@ class LiveTranscript extends Component {
         const voiceStream = this.state.stereoMix && await navigator.mediaDevices.getUserMedia({ audio: { deviceId: { exact: this.state.stereoMix, 'echoCancellation': true } }, video: false });
         const tracks = [...videoStream.getTracks(), ...voiceStream.getAudioTracks()]
         stream = new MediaStream(tracks);
+        this.setState({
+          audioSourceId: this.state.stereoMix
+        });
       }
       if (videoElement) {
+        console.log(videoElement);
         videoElement.srcObject = stream;
       }
+      this.mediaStream = stream;
       this.setState({
-        stream
+        stream,
+        captureType: 'screen'
       });
       // if (this.state.audioSource === 'mic') {
       //   this.stopTranscription();
@@ -643,15 +831,89 @@ class LiveTranscript extends Component {
     if (videoElement) {
       const tracks = videoElement.getTracks();
       tracks.forEach(track => track.stop());
+      document.querySelector('#video').srcObject = null;
     }
-    document.querySelector('#video').srcObject = null;
     this.setState({
       stream: undefined,
-      showTextBox: false
+      showTextBox: false,
+      audioSourceId: '',
+      text: '',
+      captureType: ''
     });
+    this.mediaStream = null;
+    this.stream = null;
     this.stopTranscription();
     this.reset();
   }
+
+  getMinimizedMessages = (messages) => {
+    const minMessages = [];
+    messages.forEach(msg => {
+      const miniMsg = {
+        "start": msg.results[0].alternatives[0].timestamps[0][1],
+        "end": msg.results[0].alternatives[0].timestamps.lastItem[2],
+        "transcript": msg.results[0].alternatives[0].transcript
+      };
+      minMessages.push(miniMsg);
+    });
+    minMessages.push({
+      "start": 999999,
+      "end": 9999999,
+      "transcript": "End script"
+    });
+    return minMessages;
+  }
+
+  handleSyncText(messages) {
+    const captionText = document.querySelector('.transcript-render');
+    const matchingIndex = this.state.matchingTextIndex;
+    for (let i = 0; i < messages.length; i+=1) {
+      if (i === messages.length-1) {
+        return;
+      }
+      if (this.audioPlayer.currentTime >= messages[i].start && this.audioPlayer.currentTime <= messages[i+1].start) {
+        if (matchingIndex !== i) {
+          captionText.children[matchingIndex].classList.remove("transcript-text-matching");
+          this.setState({
+            matchingTextIndex: i
+          });
+          console.log(`i=${i}, matchingIndex=${matchingIndex}`);
+        }
+        captionText.children[i].scrollIntoView({ behavior: 'smooth', block: 'center'});
+        captionText.children[i].classList.add("transcript-text-matching");
+        return;
+      }
+    }
+    // messages.forEach((msg, i) => {
+    //   if (this.audioPlayer.currentTime >= msg.start && this.audioPlayer.currentTime <= messages[i+1].start) {
+    //     childs.forEach((child, j) => {
+    //       if (j === msg.result_index) {
+    //         child.classList.add("transcript-text-matching");
+    //       } else {
+    //         child.classList.add("transcript-text-unmatching");
+    //       }
+    //     });
+    //     captionText.children[i].classList.add("transcript-text-matching");
+    //     console.log(`msg-matching`);
+    //   }
+    //   else {
+    //     captionText.children[i].classList.add("transcript-text-unmatching");
+    //     console.log(`no maching`);
+    //   }
+    // });
+  }
+
+  showUploalModal = () => {
+    this.setState({
+      uploadModalVisible: true,
+    });
+  };
+
+  hideUploadModal = () => {
+    this.setState({
+      uploadModalVisible: false,
+    });
+  };
 
   handleDragStart(e) {
     const dragItem = document.querySelector(".caption-window");
@@ -670,172 +932,356 @@ class LiveTranscript extends Component {
   render() {
 
     const {
+      stream,
+      captureType,
+      currentAudio,
+      currentVideo,
       audioSource,
-      showTextBox
+      audioInputs,
+      videoInputs,
+      showTextBox,
+      uploadModalVisible,
+      transcriptEnd,
+      error
     } = this.state;
 
     const messages = this.getFinalAndLatestInterimResult();
-    // console.log(messages);
+
+    const minMessages = this.getMinimizedMessages(messages);
+
+    console.log(messages);
 
     return (
       <>
-        {/* <Dropzone
-      onDrop={acceptedFiles => console.log(acceptedFiles)}
-      onDropAccepted={this.handleUserFile}
-      onDropRejected={this.handleUserFileRejection}
-      maxSize={200 * 1024 * 1024}
-      accept="audio/wav, audio/mp3, audio/mpeg, audio/l16, audio/ogg, audio/flac, .mp3, .mpeg, .wav, .ogg, .opus, .flac" // eslint-disable-line
-      disableClick
-      className="dropzone _container _container_large"
-      activeClassName="dropzone-active"
-      rejectClassName="dropzone-reject"
-      ref={(node) => {
-        this.dropzone = node;
-      }}
-    > */}
-        {/* {({getRootProps, getInputProps}) => ( */}
-          <div className="App">
-                  <div className="page-container">
+        <div className="App">
+          <div className="page-container">
 
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <Card className="capture-btn-container">
-                        {this.state.stream ? (
-                          <Space>
-                            <Button id='stopCapture' onClick={this.stopCapture.bind(this)} type="primary" shape="round" danger>
-                              Stop
-            </Button>
-                          </Space>) : (<><Divider>What do you want to capture ?</Divider><Space><Button id='start'
-                            className="capture-btn"
-                            onClick={this.startCapture.bind(this)}
-                            icon={<DesktopOutlined />}
-                          >
-                            Screen
-            </Button>
-                            <Button id='camera-btn'
-                              className="capture-btn"
-                              onClick={this.cameraCapture}
-                              icon={<VideoCameraOutlined />}
-                            >
-                              Camera
-            </Button>
-                            <Button id='file-upload'
-                              className="capture-btn"
-                              onClick={this.handleUploadClick}
-                              icon={<UploadOutlined />}
-                            >
-                              File
-            </Button>
-                          </Space></>)}
-                      </Card>
-                      <div className="live-transcript-container">
-                        <Card
-                          className="player-theater-card"
-                        >
-                          <div className="player-theater-container" onMouseOver={this.showVideoControls} onMouseOut={this.hideVideoControls}>
-                            <div className={this.state.stream ? "video-container" : "video-container no-stream"}>
-                              <video className="video-stream" id="video" autoPlay muted>
-                                <source type="video/mp4" />
-                              </video>
+            <div className={classNames("live-transcript-container", {
+              'display-none': !stream,
+              'display-block': stream
+            })}>
+              <h3>Application</h3>
+              <div className="live-transcript-content">
+                <Card className={showTextBox ? "player-theater-card player-theater-card-timestamp" : "player-theater-card"}>
+                  <div className="player-theater-container"
+                  // onMouseOver={this.showVideoControls}
+                  // onMouseOut={this.hideVideoControls}
+                  >
+                    <div className="recording-icon-container">
+                      <img className="recording-icon" src={RecordingIcon} alt="recordingIcon" />
+                      <span>Recording</span>
+                    </div>
+                    <div className="video-container">
+                      <video className="video-stream" id="video" autoPlay muted>
+                        <source type="video/mp4" />
+                      </video>
+                    </div>
+
+                    {/* {!this.state.stream ? (<div
+                      className="caption-window-container"
+                    >
+                      <div className="no-stream-content">
+                        <PlayCircleOutlined className="no-stream-container-icon" />
+                        <span className="stream-container-text">Captured media will be displayed here</span>
+                      </div>
+                    </div>) : (<> */}
+                    <div
+                      className="caption-window-container"
+                      onMouseDown={this.handleDragStart}
+                      onMouseUp={this.handleDragEnd}
+                      onMouseMove={this.handleDrag}
+                      onTouchStart={this.handleDragStart}
+                      onTouchEnd={this.handleDragEnd}
+                      onTouchMove={this.handleDrag}
+                    >
+                      <div className="caption-window">
+                        <span className="caption-text">
+                          {this.state.showCaption && <span className="caption-segment">This is caption</span>}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="video-controls-bottom">
+                      <Row className="controls-container" >
+                        <Col span={6} className="left-controls">
+                          <Button id='stopCapture' className="stop-capture-btn" onClick={this.stopCapture}>
+                            <div className="stop-btn-icon">
+                              <img src={StopBtnIcon} alt="stopBtn" />
                             </div>
+                          </Button>
+                          <span>
+                            Stop capturing
+                          </span>
+                        </Col>
 
-                            {!this.state.stream ? (<div
-                              className="caption-window-container"
-                            >
-                              <div className="no-stream-content">
-                                <PlayCircleOutlined className="no-stream-container-icon" />
-                                <span className="stream-container-text">Captured media will be displayed here</span>
-                              </div>
-                            </div>) : (<><div
-                              className="caption-window-container"
-                              onMouseDown={this.handleDragStart}
-                              onMouseUp={this.handleDragEnd}
-                              onMouseMove={this.handleDrag}
-                              onTouchStart={this.handleDragStart}
-                              onTouchEnd={this.handleDragEnd}
-                              onTouchMove={this.handleDrag}
-                            >
-                              <div className="caption-window">
-                                <span className="caption-text">
-                                  {/* <span className="caption-visual-line"> */}
-                                  {this.state.showCaption && <span className="caption-segment">This is caption</span>}
-                                  {/* </span> */}
-                                </span>
-                              </div>
-                            </div>
-
-                              <div className="video-controls-bottom">
-                                <Row className="controls-container" justify="end">
-                                  <div className="caption-menu-button fullscreen-btn transcript-switch-container">
-                                    <Switch className="transcript-swt-btn" checkedChildren="S2T" unCheckedChildren="TOFF" onChange={this.onShowTextBox} />
-                                  </div>
-                                  {/* <Button
-                      id='s2t'
-                      onClick={this.onListenClick}
-                      className="caption-menu-button fullscreen-btn"
-                      shape="circle"
-                      size="large"
-                      icon={audioSource === "mic" ? <AudioOutlined className="video-controls-icon" /> : <AudioMutedOutlined className="video-controls-icon" />}
-                    /> */}
-                                  <Button
-                                    id='cc'
-                                    onClick={this.handleShowCaption}
-                                    className="caption-menu-button fullscreen-btn"
-                                    shape="circle"
-                                    size="large"
-                                    icon={<ProfileFilled className="video-controls-icon" />}
-                                  />
-                                  <CaptionMenu
-                                    onChangeLanguage={this.onChangeLanguage.bind(this)}
-                                    model={this.state.model}
-                                    handleShowMenu={this.handleShowMenu}
-                                  />
-                                  <FullscreenBtn />
-                                </Row>
-                              </div></>)}
-
-
+                        <Col span={18} className="right-controls">
+                          <div className="caption-menu-button fullscreen-btn transcript-switch-container">
+                            <Switch className="transcript-swt-btn" checkedChildren="S2T" unCheckedChildren="TOFF" onChange={this.onShowTextBox} />
                           </div>
-                          {/* } */}
-                        </Card>
-                        {showTextBox && <Card className="transcript-text-card" title="Word Timings"><Transcript messages={messages} /></Card>}
-                      </div>
-                      <ModelDropdown onChangeLanguage={this.onChangeLanguage.bind(this)} model={this.state.model} />
-                      <Space>
-                        <Button
-                          onClick={this.onListenClick.bind(this)}
-                          // onClick={this.handleMicClick}
-                          type="primary" shape="round" icon={<AudioOutlined />}>
-                          Record Audio
-                      </Button>
-                        <Button id='stop' type="primary" shape="round" danger>
-                          Stop
-                      </Button>
-                        <Button id='reset' onClick={this.onResetClick.bind(this)} type="primary" shape="round" danger>
-                          Reset
-                      </Button>
-                      </Space>
-                      <div>
-                        <TextArea
-                          value={this.state.text}
-                          placeholder="Text"
-                          autoSize={{ minRows: 3 }}
-                          style={{ fontSize: '30px', width: '700px', height: '200px', overFlowY: 'scroll' }}
-                        />
-                      </div>
-                      <div></div>
-                    </Space>
-                  </div>
-                </div>
+                          {this.state.captureType === "camera" && (<>
+                            <MediaSrcSelect
+                              currentAudio={currentAudio}
+                              currentVideo={currentVideo}
+                              audioInputs={audioInputs}
+                              videoInputs={videoInputs}
+                              onChangeAudioInput={this.onChangeAudioInput}
+                              onChangeVideoInput={this.onChangeVideoInput}
+                              stream={this.stream}
+                            />
+                            <div className="right-divider"></div>
+                          </>)}
+                          <Button
+                            id='s2t'
+                            onClick={this.onListenClick}
+                            className="caption-menu-button fullscreen-btn"
+                            shape="circle"
+                            size="large"
+                            icon={audioSource === "mic" ? <AudioOutlined className="video-controls-icon" /> : <AudioMutedOutlined className="video-controls-icon" />}
+                          />
+                          <CaptionMenu
+                            onChangeLanguage={this.onChangeLanguage.bind(this)}
+                            model={this.state.model}
+                            handleShowMenu={this.handleShowMenu}
+                          />
+                          <div className="caption-switch-container">
+                            <span>Caption</span>
+                            <Switch className="transcript-swt-btn" checkedChildren="On" unCheckedChildren="Off" defaultChecked onChange={this.handleShowCaption} />
+                          </div>
+                          {/* <FullscreenBtn /> */}
+                        </Col>
 
-        <Dropzone
+
+                      </Row>
+                    </div>
+                    {/* </>)} */}
+                  </div>
+                </Card>
+                {showTextBox && <div className="transcript-text-card">
+                  <span className="text-card-title">
+                    Transcripts
+                  </span>
+                  <div className="transcript-text-content">
+                    <Transcript messages={messages} />
+                  </div>
+                </div>}
+              </div>
+            </div>
+
+            <div
+              className={classNames("file-transcript-container", {
+                'display-none': captureType !== "file",
+                'display-block': captureType === "file"
+              })}
+            >
+              <h3>File upload</h3>
+              <div className="transcript-text-card">
+                <div className="text-card-title">
+                  Transcripts
+                </div>
+                <div className="transcript-text-content">
+                  {/* <div className="transcript-paragraph">
+                      <div className="transcript-timing">
+                        00:00:00
+                      </div>
+                      <div className="transcript-paragraph-content">
+                        Most Japanese schools and public buildings have cherry blossom trees outside of them.
+                      </div>
+                    </div>
+                    <div className="transcript-paragraph">
+                      <div className="transcript-timing">
+                        00:00:00
+                      </div>
+                      <div className="transcript-paragraph-content">
+                        Most Japanese schools and public buildings have cherry blossom trees outside of them.
+                      </div>
+                    </div>
+                    <div className="transcript-paragraph">
+                      <div className="transcript-timing">
+                        00:00:00
+                      </div>
+                      <div className="transcript-paragraph-content">
+                        Most Japanese schools and public buildings have cherry blossom trees outside of them.
+                      </div>
+                    </div> */}
+                  <Transcript messages={messages} />
+                </div>
+              </div>
+              <div className="audio-controls">
+                <Button id='stopCapture' className="stop-capture-btn" onClick={this.stopCapture}>
+                  <div className="stop-btn-icon">
+                    <img src={StopBtnIcon} alt="stopBtn" />
+                  </div>
+                </Button>
+                <span>
+                  Stop capturing
+                </span>
+                <audio
+                  id="audio"
+                  onTimeUpdate={() => this.handleSyncText(minMessages)}
+                  controls
+                  ref={(node) => {
+                    this.audioPlayer = node;
+                  }}
+                >
+                  <source src="horse.ogg" type="audio/ogg" />
+                  <source src="horse.mp3" type="audio/mpeg" />
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            </div>
+
+            <Space direction="vertical" className={classNames({
+              'display-none': captureType,
+              'display-block': !captureType
+            })} style={{ width: '100%' }}>
+              {this.state.stream ? (
+                <Space>
+                  {this.state.captureType === "camera" &&
+                    <MediaSrcSelect
+                      currentAudio={currentAudio}
+                      currentVideo={currentVideo}
+                      audioInputs={audioInputs}
+                      videoInputs={videoInputs}
+                      onChangeAudioInput={this.onChangeAudioInput}
+                      onChangeVideoInput={this.onChangeVideoInput}
+                    />
+                  }
+                  <Button id='stopCapture' onClick={this.stopCapture.bind(this)} type="primary" shape="round" danger>
+                    Stop capture
+                  </Button>
+                </Space>) : (<>
+                  <Divider orientation="left">Create new</Divider>
+                  <div className="capture-btn-container">
+                    <CaptionBtn
+                      id="app-capture"
+                      backgroundColor="linear-gradient(180deg, #7E83F8 0%, #5956FF 100%)"
+                      text="Choose from another applications"
+                      RightIcon={RightIcon1}
+                      Frame={Frame1}
+                      LeftIcon={LeftIcon}
+                      onClick={this.startCapture.bind(this)}
+                    />
+                    <CaptionBtn id="mic-capture"
+                      backgroundColor="linear-gradient(180deg, #F0CD4E 0%, #E5BC51 100%)"
+                      text="Choose from desktop camera & micro"
+                      RightIcon={RightIcon2}
+                      Frame={Frame2}
+                      onClick={this.cameraCapture}
+                    />
+                    <CaptionBtn id="file-capture"
+                      backgroundColor="linear-gradient(180deg, #74E2C3 0%, #4AD4A4 100%)"
+                      text="Upload audio file"
+                      RightIcon={RightIcon3}
+                      Frame={Frame3}
+                      onClick={this.handleUploadClick}
+                    />
+                    <UploadModal
+                      visible={uploadModalVisible}
+                      transcriptEnd={transcriptEnd}
+                      hideUploadModal={this.hideUploadModal}
+                      handleUserFile={this.handleUserFile}
+                      onChangeLanguage={this.onChangeLanguage.bind(this)}
+                      model={this.state.model}
+                    />
+                  </div>
+                </>)}
+
+              <Divider orientation="left">My recent records</Divider>
+
+              <div className="my-records-container">
+
+                <Row gutter={16}>
+                  <Col className="gutter-row" span={6}>
+                    <Card
+                      className="record-card-item"
+                      hoverable
+                      style={{ width: 240 }}
+                      cover={<img alt="example" src={DocumentIcon} />}
+                    >
+                      <Meta title="Note" description="2021-06-18" />
+                    </Card>
+                  </Col>
+                  <Col className="gutter-row" span={6}>
+                    <Card
+                      className="record-card-item"
+                      hoverable
+                      style={{ width: 240 }}
+                      cover={<img alt="example" src={DocumentIcon} />}
+                    >
+                      <Meta title="adjectives1-1" description="2021-06-18" />
+                    </Card>
+                  </Col>
+                  <Col className="gutter-row" span={6}>
+                    <Card
+                      className="record-card-item"
+                      hoverable
+                      style={{ width: 240 }}
+                      cover={<img alt="example" src={DocumentIcon} />}
+                    >
+                      <Meta title="Note" description="2021-06-18" />
+                    </Card>
+                  </Col>
+                  <Col className="gutter-row" span={6}>
+                    <Card
+                      className="record-card-item"
+                      hoverable
+                      style={{ width: 240 }}
+                      cover={<img alt="example" src={DocumentIcon} />}
+                    >
+                      <Meta title="リピート練習2-②" description="2021-06-18" />
+                    </Card>
+                  </Col>
+                  <Col className="gutter-row" span={6}>
+                    <Card
+                      className="record-card-item"
+                      hoverable
+                      style={{ width: 240 }}
+                      cover={<img alt="example" src={DocumentIcon} />}
+                    >
+                      <Meta title="Note" description="2021-06-18" />
+                    </Card>
+                  </Col>
+                </Row>
+              </div>
+              {/* <ModelDropdown onChangeLanguage={this.onChangeLanguage.bind(this)} model={this.state.model} />
+              <Space>
+                <Button
+                  onClick={this.onListenClick.bind(this)}
+                  // onClick={this.handleMicClick}
+                  type="primary" shape="round" icon={<AudioOutlined />}>
+                  Record Audio
+                      </Button>
+                <Button id='stop' type="primary" shape="round" danger>
+                  Stop
+                      </Button>
+                <Button id='reset' onClick={this.onResetClick.bind(this)} type="primary" shape="round" danger>
+                  Reset
+                      </Button>
+              </Space> */}
+              {/* <div>
+                <TextArea
+                  value={this.state.text}
+                  placeholder="Text"
+                  autoSize={{ minRows: 3 }}
+                  style={{ fontSize: '30px', width: '700px', height: '200px', overFlowY: 'scroll' }}
+                />
+              </div> */}
+              <div></div>
+            </Space>
+
+
+          </div>
+        </div>
+
+        {/* <Dropzone
           onDrop={acceptedFiles => console.log(acceptedFiles)}
           onDropAccepted={this.handleUserFile}
           onDropRejected={this.handleUserFileRejection}
           maxSize={200 * 1024 * 1024}
-          accept="audio/wav, audio/mp3, audio/mpeg, audio/l16, audio/ogg, audio/flac, .mp3, .mpeg, .wav, .ogg, .opus, .flac" // eslint-disable-line
+          accept="video/mp4, audio/wav, audio/mp3, audio/mpeg, audio/l16, audio/ogg, audio/flac, .mp3, .mpeg, .wav, .ogg, .opus, .flac" // eslint-disable-line
           disableClick
           className="dropzone _container _container_large"
-          // activeClassName="dropzone-active"
+          activeClassName="dropzone-active"
           rejectClassName="dropzone-reject"
           ref={(node) => {
             this.dropzone = node;
@@ -846,18 +1292,17 @@ class LiveTranscript extends Component {
               <div {...getRootProps()}>
                 <input {...getInputProps()} />
                 <div className="drop-info-container">
-                  <div className="drop-info">
-                    <h1>Drop an audio file here.</h1>
-                    <p>Watson Speech to Text supports .mp3, .mpeg, .wav, .opus, and
-                    .flac files up to 200mb.</p>
-                  </div>
+                <div className="drop-info">
+                <h1>Drop an audio file here.</h1>
+                <p>Watson Speech to Text supports .mp3, .mpeg, .wav, .opus, and
+                  .flac files up to 200mb.</p>
+                </div>
                 </div>
 
               </div>
             </section>
           )}
-        </Dropzone>
-        {/* </Dropzone> */}
+        </Dropzone> */}
       </>
 
     );

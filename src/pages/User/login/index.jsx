@@ -1,18 +1,23 @@
 import {
-  AlipayCircleOutlined,
+  // AlipayCircleOutlined,
   LockOutlined,
   MailOutlined,
   MobileOutlined,
-  TaobaoCircleOutlined,
+  // TaobaoCircleOutlined,
   UserOutlined,
-  WeiboCircleOutlined,
+  // WeiboCircleOutlined,
 } from '@ant-design/icons';
-import { Alert, Space, message, Tabs } from 'antd';
+import { Alert,
+  // Space,
+  message,
+  Tabs } from 'antd';
 import React, { useState } from 'react';
 import ProForm, { ProFormCaptcha, ProFormCheckbox, ProFormText } from '@ant-design/pro-form';
 import { useIntl, connect, FormattedMessage } from 'umi';
 import { getFakeCaptcha } from '@/services/login';
 import styles from './index.less';
+import { Redirect } from 'react-router-dom';
+
 
 const LoginMessage = ({ content }) => (
   <Alert
@@ -38,6 +43,10 @@ const Login = (props) => {
       payload: { ...values, type },
     });
   };
+  // if (localStorage.getItem('user'))
+  // {
+  //   return <Redirect to="/" />
+  // }
 
   return (
     <div className={styles.main}>

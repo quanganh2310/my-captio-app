@@ -154,6 +154,8 @@ module.exports = function recognizeFile(options) {
     // (mostly important for downloaded files)
     FilePlayer.playFile(options.file, options.contentType)
       .then(function(player) {
+        recognizeStream.on('resume', player.resume.bind(player));
+        recognizeStream.on('pause', player.pause.bind(player));
         recognizeStream.on('stop', player.stop.bind(player));
         recognizeStream.on('error', player.stop.bind(player));
 

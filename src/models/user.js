@@ -1,4 +1,5 @@
 import { queryCurrent, query as queryUsers } from '@/services/user';
+
 const UserModel = {
   namespace: 'user',
   state: {
@@ -14,11 +15,32 @@ const UserModel = {
     },
 
     *fetchCurrent(_, { call, put }) {
-      const response = yield call(queryCurrent);
-      yield put({
-        type: 'saveCurrentUser',
-        payload: response,
-      });
+      // const response = yield call(queryCurrent);
+      const currentUser = localStorage.getItem('user');
+      if (currentUser) {
+        const data = JSON.parse(currentUser);
+        console.log(data);
+        yield put({
+          type: 'saveCurrentUser',
+          payload: {
+              name: 'admin',
+              avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
+              userid: 'admin',
+              email: 'antdesign@alipay.com',
+            },
+        });
+      }
+      // else {
+      //   yield put({
+      //     type: 'saveCurrentUser',
+      //     payload: {
+            // name: 'admin',
+            // avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
+            // userid: 'admin',
+            // email: 'antdesign@alipay.com',
+      //     },
+      //   });
+      // }
     },
   },
   reducers: {

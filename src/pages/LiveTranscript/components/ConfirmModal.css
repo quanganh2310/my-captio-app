@@ -1,0 +1,156 @@
+.ant-modal-content {
+  border-radius: 8px;
+}
+
+.ant-modal-header {
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-title {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 20px;
+  line-height: 21px;
+  text-align: center;
+  color: #202040;
+  margin: 0.5em 0 0.3em 0;
+}
+
+.modal-subtitle {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 17px;
+  text-align: center;
+  color: #9C9CB6;
+  margin-bottom: 0.3em;
+}
+
+.modal-contents-container {
+  background: #F5F5FA;
+  border-radius: 8px;
+  text-align: center;
+  height: 351px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropzone-active {
+  border: 3px dashed #5956FF;
+}
+
+
+.modal-contents {
+  text-align: center;
+}
+
+.modal-contents > * {
+  margin: 1em 0;
+}
+
+.content-text {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 17px;
+  color: #202040;
+  margin: 2em 0 1em 0;
+}
+
+.uploaded-files {
+  margin-bottom: 2em;
+}
+
+.language-select .ant-select-selector {
+  font-size: 18px !important;
+}
+
+.file-name-text {
+  color: #5956FF;
+  font-size: 18px;
+}
+
+.upload-text {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 17px;
+  text-align: center;
+  color: #202040;
+}
+
+.modal-contents .upload-sub-text {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 17px;
+  text-align: center;
+  color: #9C9CB6;
+}
+
+.browse-btn {
+  background: #5956FF;
+  border-radius: 8px;
+  color: white;
+  font-style: normal;
+  font-weight: 350;
+  font-size: 16px;
+  line-height: 17px;
+  height: 36px;
+  width: 167px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn:focus {
+  background: #5956FF;
+  color: white;
+}
+
+.play-btn {
+  width: 160px;
+}
+
+.browse-btn:hover {
+  background: #5956FF !important;
+  color: white;
+}
+
+.btn-container {
+  justify-content: center;
+  display: flex;
+}
+
+.file-confirm-section {
+  padding: 0 2em 2em 2em;
+}
+
+.file-name-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+#re-browse-btn {
+  width: 105px;
+}
+
+.language-select .model-selector {
+  width: 100%;
+}
+
+.language-select .model-selector .ant-select-selector {
+  background: none !important;
+  color: #5956FF;
+  border: 0.5px solid #5956FF !important;
+  box-sizing: border-box;
+  border-radius: 8px !important;
+  height: 3em !important;
+  align-items: center !important;
+}
+
+.language-select .model-selector .ant-select-arrow {
+  color: #5956FF;
+}
+

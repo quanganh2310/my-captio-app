@@ -44,6 +44,19 @@ function FilePlayer(file, contentType) {
   /**
    * Stops the audio
    */
+
+  this.resume = function resume() {
+    if (this.pauseTime) {
+      audio.currentTime = this.pauseTime;
+    }
+    audio.play();
+  }
+
+  this.pause = function pause() {
+    audio.pause();
+    this.pauseTime = audio.currentTime;
+  };
+
   this.stop = function stop() {
     audio.pause();
     audio.currentTime = 0;

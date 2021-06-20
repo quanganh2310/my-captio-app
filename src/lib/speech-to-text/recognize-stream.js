@@ -159,7 +159,7 @@ RecognizeStream.prototype.initialize = function() {
   var queryString = qs.stringify(queryParams);
 
   // var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?timestamps=true&smart_formatting=true&word_alternatives_threshold=0.10' + '&model=' + queryParams.model + '&access_token=' + queryParams.access_token;
-  var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?smart_formatting=true&word_alternatives_threshold=0.10' + queryString;
+  var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?smart_formatting=true&word_alternatives_threshold=0.10&speech_detector_sensitivity=0.6&background_audio_suppression=0.6&' + queryString;
 
   // process opening payload params
   var openingMessageParamsAllowed = [
@@ -222,7 +222,7 @@ RecognizeStream.prototype.initialize = function() {
 
   this.socket.onclose = function(e) {
     // if (self.listening) {
-      console.log('WebSocket Client Disconnected');
+    console.log('WebSocket Client Disconnected');
     self.listening = false;
     self.push(null);
     // }

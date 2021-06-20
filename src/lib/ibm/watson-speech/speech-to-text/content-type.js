@@ -32,6 +32,7 @@ exports.fromHeader = function contentTypeFromHeader(buffer) {
 };
 
 var filenameContentTypes = {
+  '.mp4': 'video/mp4',
   '.mp3': 'audio/mp3',
   '.wav': 'audio/wav',
   '.flac': 'audio/flac',

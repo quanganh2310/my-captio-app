@@ -36,7 +36,7 @@ export class ModelDropdown extends Component {
             <Select
                 showSearch
                 className="model-selector"
-                dropdownStyle={{background: 'rgba(26, 26, 26, 0.85)'}}
+                // dropdownStyle={{background: 'rgba(26, 26, 26, 0.85)'}}
                 placeholder="Language"
                 optionFilterProp="children"
                 filterOption={(input, option) =>
@@ -46,20 +46,17 @@ export class ModelDropdown extends Component {
                     optionA.children.toLowerCase().localeCompare(optionB.children.toLowerCase())
                 }
                 onChange={this.handleChange}
-                defaultValue="en-US_BroadbandModel"
+                value={this.props.model}
             >
                 <Option
                   className="model-option"
                   value="en-US_BroadbandModel"
-                  // style={{background: 'rgba(102, 102, 102, 0.85)', color: 'white'}}
                 >
                     English
                 </Option>
                 <Option
                   className="model-option"
                   value="ja-JP_BroadbandModel"
-                  // style={{background: 'rgba(102, 102, 102, 0.85)', color: 'white'}}
-
                 >Japanese</Option>
             </Select>
         );

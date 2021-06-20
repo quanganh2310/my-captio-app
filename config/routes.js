@@ -1,7 +1,9 @@
 export default [
+  // { path: '/login', component: '@/pages/User/Login/index'},
   {
     path: '/',
     component: '../layouts/BlankLayout',
+    // wrappers: ['../wrappers/auth'],
     routes: [
       {
         path: '/user',
@@ -17,11 +19,11 @@ export default [
       {
         path: '/',
         component: '../layouts/SecurityLayout',
+        authority: ['admin', 'user'],
         routes: [
           {
             path: '/',
             component: '../layouts/BasicLayout',
-            authority: ['admin', 'user'],
             routes: [
               {
                 path: '/',
@@ -55,15 +57,15 @@ export default [
               //     },
               //   ],
               // },
-              // {
-              //   name: 'list.table-list',
-              //   icon: 'table',
-              //   path: '/list',
-              //   component: './TableList',
-              // },
-              // {
-              //   component: './404',
-              // },
+              {
+                name: 'list.table-list',
+                icon: 'table',
+                path: '/list',
+                component: './TableList',
+              },
+              {
+                component: './404',
+              },
             ],
           },
           {
