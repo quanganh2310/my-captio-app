@@ -1,4 +1,5 @@
 import { queryCurrent, query as queryUsers } from '@/services/user';
+// import { response } from 'express';
 
 const UserModel = {
   namespace: 'user',
@@ -15,19 +16,23 @@ const UserModel = {
     },
 
     *fetchCurrent(_, { call, put }) {
-      // const response = yield call(queryCurrent);
+      const response = yield call(queryCurrent);
       const currentUser = localStorage.getItem('user');
       if (currentUser) {
         const data = JSON.parse(currentUser);
-        console.log(data);
+        // const responseJSON = JSON.parse(responseData);
+        console.log(data.userName);
+        // console.log(response);
         yield put({
           type: 'saveCurrentUser',
-          payload: {
+          payload:
+          {
               name: 'admin',
               avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
               userid: 'admin',
               email: 'antdesign@alipay.com',
-            },
+            }
+            ,
         });
       }
       // else {

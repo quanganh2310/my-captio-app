@@ -36,6 +36,16 @@
   align-items: center;
 }
 
+.preview-modal-contents-container {
+  background: #F5F5FA;
+  border-radius: 8px;
+  text-align: center;
+  height: 351px;
+  display: block;
+  justify-content: center;
+  align-items: center;
+}
+
 .dropzone-active {
   border: 3px dashed #5956FF;
 }
@@ -140,6 +150,10 @@
   width: 100%;
 }
 
+.preview-modal-contents-container .language-select .model-selector {
+  width: 50%;
+}
+
 .language-select .model-selector .ant-select-selector {
   background: none !important;
   color: #5956FF;
@@ -150,7 +164,15 @@
   align-items: center !important;
 }
 
+.preview-modal-contents-container .model-selector .ant-select-selector {
+  height: 2em !important;
+}
+
 .language-select .model-selector .ant-select-arrow {
   color: #5956FF;
 }
 
+#videoPreview {
+  width: 70%;
+  border: 2px solid #5956FF;
+}

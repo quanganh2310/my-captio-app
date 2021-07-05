@@ -16,31 +16,24 @@ function toTimestampString(time) {
   return hDisplay + mDisplay + sDisplay;
 }
 
-export default function Transcript(props) {
+export default function Transcript2(props) {
   try {
     // When resultsBySpeaker is enabled, each msg.results array may contain multiple results.
     // The result_index is for the first result in the message,
     // so we need to count up from there to calculate the key.
-    const results = props.messages.map(msg => msg.results.map((result, i) => (
+    const results = props.messages.map((msg, index) => msg.results.map((result, i) => (
       // `${result.alternatives[0].timestamps[0][1]}-${result.alternatives[0].timestamps.lastItem[2]}\n${result.alternatives[0].transcript}\n`
       // <>
-      <div className="transcript-paragraph" key={`timestamp-result-${result.alternatives[0].timestamps[0][2]*2}-${msg.result_index}-${i}-${msg.result_index + i}`}>
-        <div className="transcript-timing">
-          {toTimestampString(result.alternatives[0].timestamps[0][1])}
-        </div>
+      <div className="transcript-paragraph" key={`timestamp-result-${result.alternatives[0].timestamps[0][2]*2}-${index}-${i}-${index + i}`}>
+        {/* <div className="transcript-timing"> */}
+          {/* {result.alternatives[0].timestamps[0][1]} */}
+        {/* </div> */}
         <div className="transcript-paragraph-content">
-          {
-          result.alternatives[0].timestamps.map((timestamp, j) => (
-            <span key={`timestamp-${msg.result_index}-${i}-${msg.result_index + i}-${ j}`}>
-              {timestamp[0]}
-            </span>
-          )
-          ).reduce((c, d) => c.concat(d), [])
-          }
+          {result.alternatives[0].transcript}
         </div>
       </div>
       // <p key={`timestamp-result-${msg.result_index}-${i}-${msg.result_index + i}`}>
-      //   {result.alternatives[0].timestamps[0][1]}-{result.alternatives[0].timestamps.lastItem[2]}<br/>
+      //   {result.alternatives[0].timestamps[0][1]}<br/>
       //   {result.alternatives[0].transcript}
       // </p>
       // </>
@@ -56,6 +49,6 @@ export default function Transcript(props) {
   }
 }
 
-Transcript.propTypes = {
+Transcript2.propTypes = {
   messages: PropTypes.array.isRequired, // eslint-disable-line
 };

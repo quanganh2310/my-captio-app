@@ -65,4 +65,16 @@ export default {
   'pages.searchTable.tenThousand': '0000',
   'pages.searchTable.batchDeletion': 'bacth deletion',
   'pages.searchTable.batchApproval': 'batch approval',
+
+
+  'pages.searchTable.updateForm.recordName.nameLabel': 'Record Name',
+  'pages.searchTable.titleLength': 'Length',
+  'pages.searchTable.titleType': 'Type',
+  'pages.searchTable.nameStatus.application': 'application',
+  'pages.searchTable.nameStatus.microphone': 'microphone',
+  'pages.searchTable.nameStatus.file': 'file',
+  'pages.searchTable.titleCreatedAt': 'Created at',
+  'pages.searchTable.createForm.newRecord': 'New record',
+  'pages.searchTable.recordName': 'Record name',
+
 };

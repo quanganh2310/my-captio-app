@@ -198,6 +198,16 @@ export class CaptionMenu extends Component {
             <Switch onChange={this.onChangeTransparent} />
           </Col>
         </Row>
+        <Row className="caption-menu-item" justify="start">
+          <Col span={14} className="menu-item-title">Show full transcript</Col>
+          <Col span={10} className="menu-item-content">
+            <Switch onChange={this.props.onShowTextBox} />
+          </Col>
+        </Row>
+        {/* <div className="caption-menu-button fullscreen-btn transcript-switch-container">
+            <Switch className="transcript-swt-btn" onChange={this.props.onShowTextBox} />
+
+        </div> */}
       </div>
       </div>
     );

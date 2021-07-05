@@ -159,7 +159,9 @@ RecognizeStream.prototype.initialize = function() {
   var queryString = qs.stringify(queryParams);
 
   // var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?timestamps=true&smart_formatting=true&word_alternatives_threshold=0.10' + '&model=' + queryParams.model + '&access_token=' + queryParams.access_token;
-  var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?smart_formatting=true&word_alternatives_threshold=0.10&speech_detector_sensitivity=0.6&background_audio_suppression=0.6&' + queryString;
+  var url = (options.url || 'wss://stream.watsonplatform.net/speech-to-text/api').replace(/^http/, 'ws') + '/v1/recognize?' + queryString;
+
+  // speech_detector_sensitivity=0.6&background_audio_suppression=0.6&'
 
   // process opening payload params
   var openingMessageParamsAllowed = [
@@ -272,7 +274,8 @@ RecognizeStream.prototype.initialize = function() {
     self.emit('message', frame, data);
 
     if (data.error) {
-      emitError(data.error, frame);
+      throw data.error;
+      // emitError(data.error, frame);
     } else if (data.state === 'listening') {
       // this is emitted both when the server is ready for audio, and after we send the close message to indicate that it's done processing
       if (self.listening) {

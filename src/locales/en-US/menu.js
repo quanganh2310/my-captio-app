@@ -3,6 +3,7 @@ export default {
   'menu.more-blocks': 'More Blocks',
   'menu.home': 'Home',
   'menu.livetranscript': 'Live Transcript',
+  'menu.recordList': 'Records List',
   'menu.admin': 'Admin',
   'menu.admin.sub-page': 'Sub-Page',
   'menu.login': 'Login',

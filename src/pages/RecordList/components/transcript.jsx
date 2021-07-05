@@ -26,10 +26,10 @@ export default function Transcript(props) {
       // <>
       <div className="transcript-paragraph" key={`timestamp-result-${result.alternatives[0].timestamps[0][2]*2}-${msg.result_index}-${i}-${msg.result_index + i}`}>
         <div className="transcript-timing">
-          {toTimestampString(result.alternatives[0].timestamps[0][1])}
+          {props.fileType === 2 && toTimestampString(result.alternatives[0].timestamps[0][1])}
         </div>
         <div className="transcript-paragraph-content">
-          {
+        {
           result.alternatives[0].timestamps.map((timestamp, j) => (
             <span key={`timestamp-${msg.result_index}-${i}-${msg.result_index + i}-${ j}`}>
               {timestamp[0]}

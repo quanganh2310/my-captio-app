@@ -10,9 +10,10 @@ export default defineConfig({
   dva: {
     hmr: true,
   },
-  history: {
-    type: 'browser',
-  },
+  // history: {
+  //   type: 'browser',
+  // },
+  history: { type: 'hash' },
   locale: {
     // default en-US
     default: 'en-US',

@@ -68,9 +68,12 @@ const users = [
   },
 ]
 
+// const currentUser = JSON.parse(localStorage.getItem('user'));
+
 export default {
   // 支持值为 Object 和 Array
-  'GET /api/currentUser': {
+  'GET /api/currentUser':
+  {
     name: 'Serati Ma',
     avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
     userid: '00000001',
@@ -119,7 +122,8 @@ export default {
     },
     address: '西湖区工专路 77 号',
     phone: '0752-268888888',
-  },
+  }
+  ,
   // GET POST 可省略
   'GET /api/users': [
     {
@@ -165,6 +169,7 @@ export default {
         userId: user[0].id,
         userName: userName,
         currentAuthority: 'admin',
+        avatar: 'https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png',
         token
       });
     } else {

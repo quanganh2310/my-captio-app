@@ -41,7 +41,7 @@ export class UploadModal extends Component {
   }
 
   handleStart = (acceptedFiles) => {
-    // this.hideUploadModal();
+    this.hideUploadModal();
     this.props.handleUserFile(acceptedFiles);
   }
 
@@ -60,8 +60,6 @@ export class UploadModal extends Component {
 
   render() {
     const { transcriptEnd, hideUploadModal, handleUserFile, onChangeLanguage, model, visible } = this.props;
-
-    const antIcon = <LoadingOutlined style={{ fontSize: 36, color: "#5956FF" }} spin />;
 
     return (
       <>
@@ -98,15 +96,6 @@ export class UploadModal extends Component {
             // cancelText="取消"
             >
               <section>
-                <div
-                  className={classNames({
-                    'display-none': transcriptEnd,
-                    'display-block': !transcriptEnd,
-                  })}
-                >
-                  <div id="processing-title">Your {acceptedFiles.map((f) => f.name)} file is being processed</div>
-                  <Spin indicator={antIcon} />
-                </div>
                 <div
                   className={classNames("file-confirm-section", {
                     'display-none': acceptedFiles.length === 0 || !transcriptEnd,

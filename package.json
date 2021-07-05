@@ -67,6 +67,7 @@
     "serve": "^11.3.2",
     "umi": "^3.4.1",
     "umi-request": "^1.0.8",
+    "umi-serve": "^1.9.10",
     "video-to-audio": "^1.0.1",
     "watson-speech": "^0.39.0"
   },

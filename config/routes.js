@@ -27,14 +27,14 @@ export default [
             routes: [
               {
                 path: '/',
-                redirect: '/welcome',
+                redirect: '/liveTranscript',
               },
-              {
-                path: '/welcome',
-                name: 'welcome',
-                icon: 'smile',
-                component: './Welcome',
-              },
+              // {
+              //   path: '/welcome',
+              //   name: 'welcome',
+              //   icon: 'smile',
+              //   component: './Welcome',
+              // },
               {
                 path: '/liveTranscript',
                 name: 'livetranscript',
@@ -57,11 +57,17 @@ export default [
               //     },
               //   ],
               // },
+              // {
+              //   name: 'list.table-list',
+              //   icon: 'table',
+              //   path: '/list',
+              //   component: './TableList',
+              // },
               {
-                name: 'list.table-list',
+                name: 'recordList',
                 icon: 'table',
-                path: '/list',
-                component: './TableList',
+                path: '/recordsList',
+                component: './RecordList',
               },
               {
                 component: './404',
